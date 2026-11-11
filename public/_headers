@@ -6,7 +6,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.workers.dev; form-action 'self' https://*.workers.dev; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://platform.twitter.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://*.workers.dev; form-action 'self' https://*.workers.dev; frame-src https://platform.twitter.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
 
 # Only www.augur.net is indexed: keep the workers.dev and preview hosts out of search results.
 https://:worker.:account.workers.dev/*

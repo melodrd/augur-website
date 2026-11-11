@@ -15,6 +15,9 @@ import { site } from './src/data/site.ts';
 import rehypeCallouts from './src/markdown/rehype-callouts.mjs';
 import rehypeHeadingEmoji from './src/markdown/rehype-heading-emoji.mjs';
 import rehypePortedContent from './src/markdown/rehype-ported-content.mjs';
+import rehypePostImages from './src/markdown/rehype-post-images.mjs';
+import rehypePostText from './src/markdown/rehype-post-text.mjs';
+import rehypeTweets from './src/markdown/rehype-tweets.mjs';
 import rehypeWhitepaperLinks from './src/markdown/rehype-whitepaper-links.mjs';
 
 // The build folder (dist), set once the config is final.
@@ -63,8 +66,9 @@ export default defineConfig({
   // whitepaper) gets KaTeX math and the whitepaper's cross-file links. `.mdx` (blog posts and fork guides)
   // gets no math, so prose like "You don't spend $2 to steal $1." stays text (the old site parsed it as
   // math); it keeps the old site's callouts and drops its decorative heading emoji. rehypePortedContent
-  // only touches the ported collections.
+  // only touches the ported collections; rehypeTweets (X post links to X's embed markup) , rehypePostText
+  // (standfirsts, sign-offs, notice labels) and rehypePostImages (each image's display width) only touch blog posts.
   markdown: { processor: unified({ remarkPlugins: [remarkMath], rehypePlugins: [rehypeKatex, rehypeWhitepaperLinks, rehypePortedContent] }) },
-  integrations: [mdx({ processor: unified({ rehypePlugins: [rehypeHeadingEmoji, rehypeCallouts, rehypePortedContent] }) }), sitemap({ filter: isIndexable }), permanentTrailingSlash],
+  integrations: [mdx({ processor: unified({ rehypePlugins: [rehypeHeadingEmoji, rehypeCallouts, rehypePortedContent, rehypeTweets, rehypePostText, rehypePostImages] }) }), sitemap({ filter: isIndexable }), permanentTrailingSlash],
   vite: { plugins: [tailwindcss()] }
 });
