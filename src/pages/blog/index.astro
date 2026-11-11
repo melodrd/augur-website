@@ -1,46 +1,200 @@
 ---
-import { Image } from 'astro:assets';
 import PageLayout from '../../layouts/PageLayout.astro';
-import PageHero from '../../components/pages/PageHero.astro';
-import { getPosts, postPath, formatPostDate, isoDate } from '../../data/blog';
-// The old augur.net blog index ("The Augur Arc"), newest first. Not linked from the header or homepage
-// beyond the existing Blog links (docs/reference/ported-content.md).
+import BlogMotion from '../../components/blog/BlogMotion.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import { getPosts, topics, type Topic } from '../../data/blog';
+// The old augur.net blog index ("The Augur Arc"): a short header, a row of topic filters, the newest post as a
+// featured card, then every other post in a grid, nine to a page. Without JavaScript the filters and page links stay
+// hidden and every post shows. With it, the filters pick a topic and the links turn pages; ?topic= and ?page= keep
+// both in the address, and the browser's back button steps back through pages. Not linked from the header or homepage beyond the existing Blog links
+// (docs/reference/ported-content.md).
 const posts = await getPosts();
+const [latest] = posts;
+const filters: { value: Topic | 'all'; label: string }[] = [
+ { value: 'all', label: 'All' },
+ ...(Object.keys(topics) as Topic[]).map(value => ({ value, label: topics[value].heading })),
+];
 ---
-<PageLayout title="The Augur Arc | Augur blog" description="News, updates, and progress from the Augur reboot">
- <PageHero title="The Augur Arc" lead="News, updates, and progress from the Augur reboot. Follow our journey as we rebuild decentralized prediction markets.">
-  <p class="feed"><a class="line-link" href="/rss.xml"><span class="button-label">RSS feed</span></a></p>
- </PageHero>
- <section class="site-container posts" aria-label="Posts">
-  <ol>{posts.map(post => <li><article class="post-card">
-   <Image src={post.data.featuredImage} alt="" widths={[480, 960]} sizes="(max-width: 767px) calc(100vw - 48px), 480px" loading="lazy" decoding="async" />
-   <div class="post-text">
-    <h2><a href={postPath(post)}>{post.data.title}</a></h2>
-    <p class="post-meta"><time datetime={isoDate(post.data.publishDate)}>{formatPostDate(post.data.publishDate)}</time> · By {post.data.author}</p>
-    <p class="post-description">{post.data.description}</p>
-   </div>
-  </article></li>)}</ol>
+<PageLayout title="The Augur Arc | Augur blog" description="News, updates, and progress from the Augur reboot" feed>
+ <BlogMotion />
+ <header class="site-container blog-head">
+  <div>
+   <p class="eyebrow" data-enter>Blog</p>
+   <h1 data-enter style="--enter-step:1">The Augur Arc</h1>
+   <p class="intro" data-enter style="--enter-step:2">News, updates, and progress from the Augur reboot. Follow our journey as we rebuild decentralized prediction markets.</p>
+  </div>
+  <a class="line-link rss" href="/rss.xml" data-enter style="--enter-step:2"><span class="button-label">RSS feed</span></a>
+ </header>
+
+ <div class="site-container blog-tools" data-blog-tools data-enter style="--enter-step:3" hidden>
+  <div class="topics" role="group" aria-label="Filter posts by topic">
+   {filters.map(filter => <button type="button" data-topic-filter={filter.value} aria-pressed={filter.value === 'all' ? 'true' : 'false'}>{filter.label}</button>)}
+  </div>
+ </div>
+
+ <section class="site-container featured-post" aria-labelledby="latest-heading" data-blog-featured data-enter style="--enter-step:4">
+  <h2 id="latest-heading" class="sr-only">Latest post</h2>
+  <PostCard post={latest} featured />
+ </section>
+
+ <section class="site-container all-posts" aria-labelledby="posts-heading" data-blog-posts>
+  <h2 id="posts-heading" class="sr-only" tabindex="-1">All posts</h2>
+  <p class="sr-only" role="status" data-blog-status></p>
+  <ul class="post-grid">{posts.map(post => <li data-post data-reveal data-latest={post === latest ? '' : undefined}><PostCard post={post} /></li>)}</ul>
+  <nav class="pager" aria-label="Pages" data-blog-pager hidden></nav>
  </section>
 </PageLayout>
+<script>
+ const tools=document.querySelector<HTMLElement>('[data-blog-tools]');
+ const featured=document.querySelector<HTMLElement>('[data-blog-featured]');
+ const section=document.querySelector<HTMLElement>('[data-blog-posts]');
+ const heading=document.querySelector<HTMLElement>('#posts-heading');
+ const status=document.querySelector<HTMLElement>('[data-blog-status]');
+ const pager=document.querySelector<HTMLElement>('[data-blog-pager]');
+ const buttons=[...document.querySelectorAll<HTMLButtonElement>('[data-topic-filter]')];
+ const items=[...document.querySelectorAll<HTMLElement>('[data-post]')];
+ if(tools&&featured&&section&&heading&&status&&pager){
+  const PER_PAGE=9;
+  const labels=new Map(buttons.map(button=>[button.dataset.topicFilter!,button.textContent!.trim()]));
+  let topic='all',page=1;
+  const read=()=>{
+   const params=new URLSearchParams(location.search);
+   topic=labels.has(params.get('topic')??'')?params.get('topic')!:'all';
+   page=Math.max(1,Number.parseInt(params.get('page')??'1',10)||1);
+  };
+  const address=(nextTopic:string,nextPage:number)=>{
+   const params=new URLSearchParams();
+   if(nextTopic!=='all')params.set('topic',nextTopic);
+   if(nextPage>1)params.set('page',String(nextPage));
+   const search=params.toString();
+   return search?`?${search}`:location.pathname;
+  };
+  const link=(target:number,text:string,label:string,current=false)=>{
+   const anchor=document.createElement('a');
+   anchor.href=address(topic,target);anchor.dataset.page=String(target);anchor.textContent=text;anchor.setAttribute('aria-label',label);
+   if(current)anchor.setAttribute('aria-current','page');
+   return anchor;
+  };
+  // An arrow with no page beyond it stays in place, dimmed and hidden from screen readers, so the row doesn't shift.
+  const spacer=(text:string)=>Object.assign(document.createElement('span'),{className:'is-disabled',textContent:text,ariaHidden:'true'});
+  const apply=()=>{
+   // With every topic, the newest post is the featured card on page 1 and stays out of the grid's pages.
+   const pool=items.filter(item=>topic==='all'?!item.hasAttribute('data-latest'):item.querySelector<HTMLElement>('[data-topic]')?.dataset.topic===topic);
+   const pages=Math.max(1,Math.ceil(pool.length/PER_PAGE));
+   page=Math.min(page,pages);
+   const shown=new Set(pool.slice((page-1)*PER_PAGE,page*PER_PAGE));
+   items.forEach(item=>item.hidden=!shown.has(item));
+   const showFeatured=topic==='all'&&page===1;
+   featured.hidden=!showFeatured;
+   section.toggleAttribute('data-filtering',!showFeatured);
+   buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.topicFilter===topic)));
+   pager.replaceChildren();
+   pager.hidden=pages<2;
+   if(pages>1){
+    pager.append(page>1?link(page-1,'←','Previous page'):spacer('←'));
+    for(let number=1;number<=pages;number++)pager.append(link(number,String(number),`Page ${number}`,number===page));
+    pager.append(page<pages?link(page+1,'→','Next page'):spacer('→'));
+   }
+   const count=topic==='all'?'':`${pool.length} ${pool.length===1?'post':'posts'} in ${labels.get(topic)}`;
+   const where=pages>1?`Page ${page} of ${pages}`:'';
+   status.textContent=[count,where].filter(Boolean).join(', ');
+  };
+  // Topic changes reflow the grid through a view transition: cards that stay glide to their new place, the rest fade.
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const root=document.documentElement;
+  const change=(update:()=>void)=>{
+   const run=()=>{update();apply();};
+   if(reduced.matches||typeof document.startViewTransition!=='function'){run();return;}
+   items.forEach((item,index)=>item.style.setProperty('view-transition-name',`blog-post-${index}`));
+   featured.style.setProperty('view-transition-name','blog-featured');
+   root.dataset.blogTransition='';
+   const tidy=()=>{items.forEach(item=>item.style.removeProperty('view-transition-name'));featured.style.removeProperty('view-transition-name');delete root.dataset.blogTransition;};
+   document.startViewTransition(run).finished.then(tidy,tidy);
+  };
+  buttons.forEach(button=>button.addEventListener('click',()=>{
+   const next=button.dataset.topicFilter!;
+   if(next===topic)return;
+   change(()=>{topic=next;page=1;history.replaceState(null,'',address(topic,page));});
+  }));
+  // A page link turns the page in place and adds a history entry, then jumps back to the top of the list (below the
+  // site header), moves focus to its heading and fades the new cards in.
+  const grid=section.querySelector<HTMLElement>('.post-grid');
+  pager.addEventListener('click',event=>{
+   const anchor=(event.target as Element).closest<HTMLAnchorElement>('a[data-page]');
+   if(!anchor||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
+   event.preventDefault();
+   const next=Number(anchor.dataset.page);
+   if(next===page)return;
+   page=next;
+   history.pushState(null,'',address(topic,page));
+   apply();
+   const top=tools.getBoundingClientRect().top+scrollY-120;
+   if(scrollY>top)scrollTo({top,behavior:'auto'});
+   heading.focus({preventScroll:true});
+   if(!reduced.matches)grid?.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:280,easing:'cubic-bezier(.22,.61,.36,1)'});
+  });
+  addEventListener('popstate',()=>{read();apply();});
+  read();
+  tools.hidden=false;
+  apply();
+  // An address with a page or topic that doesn't exist is rewritten to what is shown.
+  const shownAddress=address(topic,page);
+  if(location.search&&location.search!==shownAddress)history.replaceState(null,'',shownAddress);
+ }
+</script>
 <style>
- .feed{margin-top:24px}
- .posts{padding-block:24px 96px}
- .posts ol{display:grid;gap:24px;list-style:none;margin:0;padding:0}
- /* The heading's link covers the whole card, so the card is one tab stop named by its title. */
- .post-card{position:relative;display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);border:1px solid var(--web-outline);background:var(--web-quiet);transition:background-color 180ms ease-out}
- .post-card:hover{background:var(--web-tile)}
- .post-card img{width:100%;height:100%;aspect-ratio:1200/630;object-fit:cover;border-right:1px solid var(--web-outline)}
- .post-text{display:flex;flex-direction:column;gap:12px;padding:32px}
- .post-card h2{font-size:24px;line-height:32px;text-wrap:balance}
- .post-card h2 a{text-decoration:none}
- .post-card h2 a::after{content:'';position:absolute;inset:0}
- .post-card:hover h2 a{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
- .post-card:has(a:focus-visible){outline:2px solid var(--ring);outline-offset:2px}
- .post-card h2 a:focus-visible{outline:none}
- .post-meta{font-size:14px;line-height:20px;color:var(--muted-foreground)}
- .post-description{color:var(--muted-foreground)}
- @media(max-width:1023px){.post-card{grid-template-columns:minmax(0,2fr) minmax(0,3fr)}.post-text{padding:24px}.post-card h2{font-size:20px;line-height:28px}}
- @media(max-width:767px){.posts{padding-block:8px 64px}.post-card{grid-template-columns:1fr}.post-card img{height:auto;border-right:0;border-bottom:1px solid var(--web-outline)}}
- @media(prefers-reduced-motion:reduce){.post-card{transition:none}}
- @media(forced-colors:active){.post-card:has(a:focus-visible){outline-color:Highlight}}
+ /* The RSS link sits on the intro's last line. */
+ .blog-head{display:flex;justify-content:space-between;align-items:last baseline;gap:24px 48px;padding-block:64px 40px}
+ .eyebrow{display:flex;align-items:center;gap:10px;font:600 14px/20px var(--font-heading);color:var(--primary)}
+ .eyebrow::before{content:'';width:6px;height:6px;background:var(--primary)}
+ h1{margin-top:8px;font-size:clamp(36px,3.4vw,48px);line-height:1.15;letter-spacing:-.02em}
+ .intro{max-width:600px;margin-top:12px;font-size:17px;line-height:26px;color:var(--muted-foreground)}
+ .rss{display:inline-flex;align-items:center;min-height:44px;flex:none;font:600 15px/22px var(--font-heading);color:var(--foreground)}
+
+ /* The topic filters sit on one row over a rule. */
+ .blog-tools{display:flex;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--web-outline)}
+ .blog-tools[hidden]{display:none}
+ .topics{display:flex;flex-wrap:wrap;gap:4px}
+ .topics button{min-height:40px;padding:8px 14px;border:1px solid transparent;background:none;color:var(--muted-foreground);font:400 15px/22px var(--font-heading);cursor:pointer;transition:color 140ms ease-out,border-color 140ms ease-out,background-color 140ms ease-out}
+ .topics button:hover{color:var(--foreground);border-color:var(--web-outline)}
+ .topics button[aria-pressed=true]{color:var(--primary-foreground);background:var(--primary);border-color:var(--primary);font-weight:600}
+ .topics button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+ .featured-post{padding-top:40px}
+ .featured-post[hidden]{display:none}
+ .all-posts{padding-block:56px 120px}
+ .all-posts[data-filtering]{padding-top:40px}
+ /* Topic changes: a short glide for cards that move, a fade for the rest. */
+ :global(html[data-blog-transition]::view-transition-group(*)){animation-duration:320ms;animation-timing-function:cubic-bezier(.22,.61,.36,1)}
+ :global(html[data-blog-transition]::view-transition-old(root)),:global(html[data-blog-transition]::view-transition-new(root)){animation:none}
+ .post-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;list-style:none;margin:0;padding:0}
+ .post-grid>li[hidden]{display:none}
+ /* The newest post is the featured card until a topic is chosen; then it joins the grid. */
+ .all-posts:not([data-filtering]) [data-latest]{display:none}
+ /* Page links: a row of square buttons, ← 1 2 →, the current page filled green. The script builds them, so the
+    rules reach in with :global. */
+ .pager{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:56px}
+ .pager[hidden]{display:none}
+ .pager :global(:is(a,span)){display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:1px solid var(--border-quiet);font:600 15px/22px var(--font-heading);color:var(--muted-foreground);text-decoration:none;transition:color 140ms ease-out,border-color 140ms ease-out}
+ .pager :global(a:hover){color:var(--foreground);border-color:var(--brand-hover-edge)}
+ .pager :global(a:focus-visible){outline:2px solid var(--ring);outline-offset:2px}
+ .pager :global(a[aria-current=page]){background:var(--primary);border-color:var(--primary);color:var(--primary-foreground)}
+ .pager :global(.is-disabled){opacity:.4}
+
+ @media(max-width:1023px){
+  .blog-head{padding-block:48px 32px}
+  .post-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+ }
+ @media(max-width:767px){
+  .blog-head{flex-direction:column;align-items:start;padding-block:40px 24px;gap:12px}
+  .intro{font-size:16px;line-height:24px}
+  /* The topics wrap onto a second line rather than scrolling sideways, where the last one sat off-screen with
+     nothing to show it was there. */
+  .topics button{padding-inline:10px;font-size:14px}
+  .featured-post{padding-top:28px}
+  .all-posts{padding-block:48px 80px}
+  .post-grid{grid-template-columns:1fr;gap:20px}
+ }
+ @media(prefers-reduced-motion:reduce){.topics button,.pager :global(a){transition:none}}
+ @media(forced-colors:active){.topics button[aria-pressed=true]{border-color:Highlight;color:Highlight}}
 </style>

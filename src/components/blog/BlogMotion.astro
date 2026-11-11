@@ -1,0 +1,42 @@
+---
+// Motion for /blog/ and the post pages. Place it before the content it animates.
+// - Entrance: elements marked data-enter (with --enter-step for order) rise into place on arrival, in CSS, so
+//   nothing is hidden before first paint. Like the site's other entrances (src/motion/seen.ts) it plays once per
+//   tab session: a reload, a back/forward visit or a page already seen this session shows everything settled.
+// - Reveal: elements marked data-reveal that start below the fold rise in as they scroll into view, through
+//   playOnce. Elements already on screen at load are left alone.
+// Reduced motion, print and no-JavaScript readers see every element settled and visible.
+---
+<script is:inline>
+ (()=>{
+  const root=document.documentElement,key='augur:motion-seen',id=location.pathname+':blog-entrance';
+  let settled=false;
+  try{
+   const navigation=performance.getEntriesByType('navigation')[0];
+   settled=!!navigation&&(navigation.type==='reload'||navigation.type==='back_forward');
+   const seen=JSON.parse(sessionStorage.getItem(key)||'[]');
+   if(seen.includes(id))settled=true;else{seen.push(id);sessionStorage.setItem(key,JSON.stringify(seen));}
+  }catch(error){}
+  if(settled)root.setAttribute('data-blog-entrance','settled');
+ })();
+</script>
+<script>
+ import {playOnce} from '../../motion/play-once';
+ // Once the entrance has finished, settle it, so an element shown again later (a filter brings the featured
+ // post back) doesn't replay it.
+ window.setTimeout(()=>document.documentElement.setAttribute('data-blog-entrance','settled'),1600);
+ const fold=innerHeight;
+ document.querySelectorAll<HTMLElement>('[data-reveal]').forEach(element=>{
+  const box=element.getBoundingClientRect();
+  if(box.top<fold||box.height===0)return;
+  // Cards that enter together cascade left to right.
+  const column=Math.min(3,Math.floor(box.left/Math.max(1,innerWidth)*3));
+  playOnce(element,animate=>{animate(element,[{opacity:0,transform:'translateY(18px)'},{opacity:1,transform:'none'}],{duration:480,delay:column*80});},{threshold:.15});
+ });
+</script>
+<style is:global>
+ @keyframes blog-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+ @media(prefers-reduced-motion:no-preference){
+  html:not([data-blog-entrance=settled]) [data-enter]{animation:blog-enter 620ms cubic-bezier(.22,.61,.36,1) both;animation-delay:calc(var(--enter-step,0) * 70ms + 60ms)}
+ }
+</style>

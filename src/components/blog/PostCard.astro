@@ -1,0 +1,67 @@
+---
+// One post as a card: cover, then the title, then the date and reading time (after a `label`, such as Keep
+// reading's "Next in …", when given). `featured` lays the newest post out sideways with its description. The title's
+// link covers the card, so each card is one tab stop named by its title. `data-topic` feeds the /blog/ topic filter.
+import { Image } from 'astro:assets';
+import { postPath, formatShortDate, isoDate, readingMinutes, type Post } from '../../data/blog';
+interface Props { post: Post; featured?: boolean; label?: string }
+const { post, featured = false, label } = Astro.props;
+const { title, description, publishDate, topic, featuredImage } = post.data;
+---
+<article class:list={['post-card', { featured }]} data-topic={topic}>
+ <Image class="cover" src={featuredImage} alt="" widths={featured ? [480, 720, 1080] : [400, 640, 800]}
+  sizes={featured ? '(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) calc(100vw - 64px), 600px' : '(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) calc(50vw - 48px), 400px'}
+  loading={featured ? 'eager' : 'lazy'} fetchpriority={featured ? 'high' : undefined} decoding="async" />
+ <div class="body">
+  <h3><a href={postPath(post)}>{title}</a></h3>
+  {featured && <p class="description">{description}</p>}
+  <p class="meta">{label && <span class="label">{label}</span>}<time datetime={isoDate(publishDate)}>{formatShortDate(publishDate)}</time><span>{readingMinutes(post)} min read</span></p>
+ </div>
+</article>
+<style>
+ /* Every card is a faint square panel: a quiet outline that turns green on hover, the cover flush at the top, the
+    text padded below. Cards in a row share a height, and the date line sits at the bottom so it lines up across
+    the row whatever the title's length. */
+ .post-card{position:relative;display:flex;flex-direction:column;min-width:0;height:100%;border:1px solid var(--border-quiet);background:color-mix(in srgb,var(--web-quiet) 50%,transparent);transition:border-color 180ms ease-out}
+ .cover{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border-bottom:1px solid var(--border-quiet);background:var(--web-quiet)}
+ .body{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px 22px 22px}
+ .meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;margin-top:auto;font-size:14px;line-height:20px;color:var(--muted-foreground)}
+ /* A label takes its own line above the date, so the date line never wraps. */
+ .label{flex-basis:100%;margin-bottom:4px;font-family:var(--font-heading);font-weight:600;color:var(--primary)}
+ /* Separators trail each item so a wrapped line never starts with "·". */
+ .meta>*{white-space:nowrap}
+ .meta>:not(:last-child,.label)::after{content:'·';margin-inline:8px}
+ h3{font:600 20px/28px var(--font-heading);text-wrap:balance;overflow-wrap:break-word}
+ h3 a{color:var(--foreground);text-decoration:none}
+ h3 a::after{content:'';position:absolute;inset:0}
+ h3 a:focus-visible{outline:none}
+ .description{color:var(--muted-foreground);display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+ .post-card:hover h3 a{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
+ .post-card:hover{border-color:var(--brand-hover-edge)}
+ .post-card:has(a:focus-visible){outline:2px solid var(--ring);outline-offset:4px}
+
+ /* Featured: a contained horizontal card, image left. */
+ .featured{display:grid;grid-template-columns:minmax(0,9fr) minmax(0,11fr)}
+ /* When the text runs taller than the cover, the cover fills the height and crops from the right: the covers
+    set their headline on the left. */
+ .featured .cover{border-bottom:0;border-right:1px solid var(--border-quiet);height:100%;object-position:left center}
+ .featured .body{justify-content:center;gap:16px;padding:40px 48px}
+ .featured .meta{margin-top:4px}
+ .featured h3{font-size:clamp(24px,2.2vw,30px);line-height:1.25;letter-spacing:-.01em}
+ .featured .description{font-size:17px;line-height:26px;-webkit-line-clamp:3}
+
+ @media(max-width:1023px){
+  .featured .body{padding:24px 28px}
+  .featured .description{-webkit-line-clamp:2}
+ }
+ @media(max-width:767px){
+  .body{padding:16px 18px 20px}
+  h3{font-size:19px;line-height:27px}
+  .featured{grid-template-columns:1fr}
+  .featured .cover{border-right:0;border-bottom:1px solid var(--border-quiet);height:auto}
+  .featured .body{padding:20px 20px 24px}
+  .featured .description{font-size:16px;line-height:24px}
+ }
+ @media(prefers-reduced-motion:reduce){.post-card{transition:none}}
+ @media(forced-colors:active){.post-card:has(a:focus-visible){outline-color:Highlight}}
+</style>

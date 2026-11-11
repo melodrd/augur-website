@@ -14,13 +14,15 @@ import { links } from '../data/links';
 // results. `footer={false}` keeps the announcement and header but drops the footer, whose contact
 // band would repeat the contact page. `class` sets <main>'s class for the inner pages. `canonical={false}`
 // drops the canonical link and og:url, for the 404 page, which answers every unknown path. `intro` arms the
-// first-visit veil (page-intro.js), the homepage only.
-interface Props { title?: string; description?: string; noindex?: boolean; bare?: boolean; footer?: boolean; canonical?: boolean; intro?: boolean; class?: string }
-const { title = 'Augur | The frontier of decentralized truth', description = 'Real-world answers for onchain apps, controlled by no one.', noindex = false, bare = false, footer = true, canonical = true, intro = false, class: className } = Astro.props;
+// first-visit veil (page-intro.js), the homepage only. `image` replaces the site's share image (blog posts pass their
+// cover); `article` marks the page as an article with its dates; `feed` adds the blog's RSS discovery link.
+interface ShareImage { path: string; width: number; height: number; alt: string }
+interface Props { title?: string; description?: string; noindex?: boolean; bare?: boolean; footer?: boolean; canonical?: boolean; intro?: boolean; class?: string; image?: ShareImage; article?: { published: Date; modified?: Date }; feed?: boolean }
+const { title = 'Augur | The frontier of decentralized truth', description = 'Real-world answers for onchain apps, controlled by no one.', noindex = false, bare = false, footer = true, canonical = true, intro = false, class: className, image = site.shareImage, article, feed = false } = Astro.props;
 // Canonical and share URLs use `site` in astro.config.mjs (https://www.augur.net) on every host, so a
 // workers.dev preview points search engines and share cards at the canonical page.
 const canonicalUrl = canonical ? new URL(Astro.url.pathname, Astro.site).href : undefined;
-const shareImage = new URL(site.shareImage.path, Astro.site).href;
+const shareImage = new URL(image.path, Astro.site).href;
 const xHandle = `@${new URL(links.x.url).pathname.slice(1)}`;
 // GA4 runs on the canonical host only, so workers.dev, previews and local builds are not counted. No consent
 // banner (jubalm, 30 October 2026). The configuration matches the old site's gtag snippet.
@@ -41,22 +43,25 @@ const markdown = !bare && !noindex && mdFiles.has(mdPath) ? mdPath : undefined;
   <title>{title}</title>{noindex && <meta name="robots" content="noindex" />}
   <meta name="description" content={description} />
   {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content={article ? 'article' : 'website'} />
+  {article && <meta property="article:published_time" content={article.published.toISOString()} />}
+  {article?.modified && <meta property="article:modified_time" content={article.modified.toISOString()} />}
   <meta property="og:site_name" content={site.name} />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
   {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
   <meta property="og:image" content={shareImage} />
-  <meta property="og:image:width" content={String(site.shareImage.width)} />
-  <meta property="og:image:height" content={String(site.shareImage.height)} />
-  <meta property="og:image:alt" content={site.shareImage.alt} />
+  <meta property="og:image:width" content={String(image.width)} />
+  <meta property="og:image:height" content={String(image.height)} />
+  <meta property="og:image:alt" content={image.alt} />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content={xHandle} />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={shareImage} />
-  <meta name="twitter:image:alt" content={site.shareImage.alt} />
+  <meta name="twitter:image:alt" content={image.alt} />
   {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
+  {feed && <link rel="alternate" type="application/rss+xml" title="Augur Blog" href="/rss.xml" />}
   <link rel="icon" href="/brand/kit/rep-token/rep-token-icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/brand/kit/rep-token/rep-token-icon.png" />
   <link rel="preload" href={headlineFont} as="font" type="font/woff2" crossorigin />
