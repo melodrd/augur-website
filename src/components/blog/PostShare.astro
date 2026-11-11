@@ -1,0 +1,104 @@
+---
+// Share actions for a post, at its top and bottom. `compact` is three icon buttons beside the byline, each named for
+// screen readers and labelled by a tooltip on hover or focus; `row` is the labelled "Share this post" row after the
+// text. "Copy for AI" copies the post as Markdown and "Copy link" the canonical address, both from the page's
+// #post-share-data JSON (src/pages/blog/[slug].astro); they stay hidden until the script can copy. "Share on X" is a
+// plain link to X's share intent.
+import Icon from '../primitives/Icon.astro';
+import { links } from '../../data/links';
+interface Props { title: string; url: string; variant: 'compact' | 'row' }
+const { title, url, variant } = Astro.props;
+const xHref = `${links.xShare.url}?${new URLSearchParams({ text: title, url })}`;
+---
+<div class:list={['post-share', variant]} data-post-share role={variant === 'compact' ? 'group' : undefined} aria-label={variant === 'compact' ? 'Share this post' : undefined}>
+ {variant === 'row' && <h2>Share this post</h2>}
+ <div class="actions">
+  <button type="button" class="share-action" data-copy="markdown" data-tip="Copy for AI" data-done="Copied for AI" hidden>
+   <Icon name="copy" /><span class="label" data-label>Copy for AI</span>
+  </button>
+  <button type="button" class="share-action" data-copy="url" data-tip="Copy link" data-done="Link copied" hidden>
+   <Icon name="link" /><span class="label" data-label>Copy link</span>
+  </button>
+  <a class="share-action" href={xHref} data-tip="Share on X ↗"><Icon name="x-logo" /><span class="label">Share<span class="wide-only"> on X</span></span><span class="offsite" aria-hidden="true">↗</span></a>
+ </div>
+ <p class="sr-only" role="status" data-share-status></p>
+</div>
+<script>
+ // The Clipboard API first; where it refuses (an unfocused or embedded page), a selected off-screen field and
+ // the older copy command.
+ const copy=async(text:string)=>{
+  try{await navigator.clipboard.writeText(text);return;}catch{}
+  const field=document.createElement('textarea');
+  field.value=text;field.setAttribute('readonly','');field.style.cssText='position:fixed;top:0;left:-9999px;opacity:0';
+  document.body.append(field);field.select();
+  const done=document.execCommand('copy');field.remove();
+  if(!done)throw new Error('copy refused');
+ };
+ const data=JSON.parse(document.getElementById('post-share-data')?.textContent??'{}') as {markdown?:string;url?:string};
+ const canCopy=!!navigator.clipboard?.writeText||!!document.queryCommandSupported?.('copy');
+ document.querySelectorAll<HTMLElement>('[data-post-share]').forEach(root=>{
+  if(!canCopy)return;
+  const status=root.querySelector<HTMLElement>('[data-share-status]');
+  root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach(button=>{
+   const label=button.querySelector<HTMLElement>('[data-label]')!;
+   const idle=label.textContent!;
+   const tip=button.dataset.tip!;
+   let timer=0;
+   button.hidden=false;
+   button.addEventListener('click',async()=>{
+    const text=button.dataset.copy==='markdown'?data.markdown:data.url;
+    if(!text)return;
+    let result:string;
+    try{
+     await copy(text);
+     result=button.dataset.done!;button.dataset.state='done';
+     if(status)status.textContent=button.dataset.copy==='markdown'?'Post copied as Markdown.':'Link copied.';
+    }catch{
+     result='Copy failed';button.dataset.state='failed';
+     if(status)status.textContent='Copying failed. Your browser blocked the clipboard.';
+    }
+    label.textContent=result;button.dataset.tip=result;
+    clearTimeout(timer);
+    timer=window.setTimeout(()=>{label.textContent=idle;button.dataset.tip=tip;delete button.dataset.state;},2200);
+   });
+  });
+ });
+</script>
+<style>
+ .share-action{position:relative;display:inline-flex;align-items:center;gap:10px;background:none;color:var(--foreground);text-decoration:none;cursor:pointer;transition:color 140ms ease-out,border-color 140ms ease-out,background-color 140ms ease-out}
+ .share-action[hidden]{display:none}
+ .share-action:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+ .share-action :global(.web-icon),.share-action :global(.web-icon svg){width:16px;height:16px}
+ .offsite{margin-left:-4px;font-size:.9em}
+ .actions{display:flex;flex-wrap:wrap;gap:8px}
+
+ /* Compact: square icon buttons; the label is for screen readers, the tooltip for sight. */
+ .compact .share-action{justify-content:center;width:40px;height:40px;padding:0;border:1px solid var(--web-outline);color:var(--muted-foreground)}
+ .compact .share-action:hover{color:var(--foreground);border-color:var(--brand-hover-edge);background:var(--web-tile)}
+ .compact .share-action[data-state=done]{color:var(--primary);border-color:var(--primary)}
+ .compact .label,.compact .offsite{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ .compact .share-action::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translate(-50%,4px);padding:5px 9px;border:1px solid var(--web-outline);background:var(--web-tile);color:var(--foreground);font:600 12px/16px var(--font-heading);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 140ms ease-out,transform 140ms ease-out}
+ .compact .share-action:is(:hover,:focus-visible,[data-state])::after{opacity:1;transform:translate(-50%,0)}
+ /* The outer tooltips line up with their button's outer edge, so neither reaches past the screen edge (a hidden
+    tooltip still counts towards the page's width) when the buttons sit at either end of the line. */
+ .compact .share-action:first-child::after{left:0;transform:translate(0,4px)}
+ .compact .share-action:last-child::after{left:auto;right:0;transform:translate(0,4px)}
+ .compact .share-action:is(:first-child,:last-child):is(:hover,:focus-visible,[data-state])::after{transform:none}
+
+ /* Row: labelled buttons after the text. */
+ .row{display:flex;flex-direction:column;gap:14px}
+ .row h2{font:600 15px/22px var(--font-heading);color:var(--foreground);margin:0}
+ .row .share-action{min-height:44px;padding:10px 16px;border:1px solid var(--web-outline);font:600 14px/20px var(--font-heading)}
+ .row .share-action:hover{border-color:var(--brand-hover-edge);background:var(--web-tile)}
+ .row .share-action[data-state=done]{color:var(--primary);border-color:var(--primary)}
+ /* On phones the row fits one line: "Share on X" shows as "Share" beside the X logo, and " on X" stays in the
+    accessible name. */
+ @media(max-width:767px){
+  .row .actions{gap:6px}
+  .row .share-action{gap:6px;padding:10px;font-size:13px}
+  .row .wide-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ }
+ @media(prefers-reduced-motion:reduce){.share-action,.compact .share-action::after{transition:none}}
+ @media(forced-colors:active){.compact .share-action{border-color:ButtonText}}
+ @media print{.post-share{display:none}}
+</style>

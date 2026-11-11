@@ -1,6 +1,8 @@
 @import '@fontsource/sora/400.css';
 @import '@fontsource/sora/600.css';
 @import '@fontsource/schibsted-grotesk/400.css';
+/* Real italics for <em>; without this face browsers slant the upright one. Fetched only where italic is used. */
+@import '@fontsource/schibsted-grotesk/400-italic.css';
 @import 'tailwindcss';
 /* `outline` is the outline button's variant class (Button.astro), not Tailwind's outline-style utility,
    which would draw a 1 px Paper outline around every outline button. */

@@ -1,37 +1,252 @@
 ---
 import { render } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
 import PageLayout from '../../layouts/PageLayout.astro';
-import ArticleHeader from '../../components/content/ArticleHeader.astro';
+import HeritageField from '../../components/art/HeritageField.astro';
 import Prose from '../../components/content/Prose.astro';
-import PagerNav from '../../components/content/PagerNav.astro';
-import { getPosts, postPath, formatPostDate, isoDate, type Post } from '../../data/blog';
+import BlogMotion from '../../components/blog/BlogMotion.astro';
+import PostContents from '../../components/blog/PostContents.astro';
+import PostCard from '../../components/blog/PostCard.astro';
+import PostShare from '../../components/blog/PostShare.astro';
+import { getPosts, postPath, formatPostDate, isoDate, readingMinutes, readingQueue, postMarkdown, topics, type Post } from '../../data/blog';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  // Newest first: the post after this one in the list is the previous (older) post.
-  return posts.map((post, index) => ({ params: { slug: post.id }, props: { post, older: posts[index + 1], newer: posts[index - 1] } }));
+  return posts.map(post => ({ params: { slug: post.id }, props: { post, posts } }));
 }
-interface Props { post: Post; older?: Post; newer?: Post }
-const { post, older, newer } = Astro.props;
-const { Content } = await render(post);
-const { title, description, author, publishDate } = post.data;
+interface Props { post: Post; posts: Post[] }
+const { post, posts } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, description, author, publishDate, updatedDate, topic, featuredImage } = post.data;
+// "On this page" lists the sections (h2s) only, and needs at least two to be worth showing; the rail keeps its
+// column either way.
+const contents = headings.filter(heading => heading.depth === 2);
+const hasContents = contents.length >= 2;
+const updated = updatedDate && isoDate(updatedDate) !== isoDate(publishDate) ? updatedDate : undefined;
+const url = new URL(postPath(post), Astro.site).href;
+const queue = readingQueue(post, posts);
+// The cover as the share image, as a JPEG for the widest support in link previews.
+const shareCover = await getImage({ src: featuredImage, width: 1200, format: 'jpeg' });
+const shareImage = { path: shareCover.src, width: Number(shareCover.attributes.width ?? 1200), height: Number(shareCover.attributes.height ?? 630), alt: title };
+// What the share buttons copy, once per page. "<" is escaped so the text can't close the element.
+const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), url }).replace(/</g, '\\u003c');
 ---
-<PageLayout title={`${title} | Augur blog`} description={description}>
- <ArticleHeader crumbs={[{ label: 'Blog', href: '/blog/' }, { label: title }]} title={title}>
-  <p class="post-meta">By {author} · <time datetime={isoDate(publishDate)}>{formatPostDate(publishDate)}</time></p>
- </ArticleHeader>
- <div class="site-container article-body">
-  <article class="reading-column">
-   <Prose><Content /></Prose>
-   <PagerNav label="More posts"
-    previous={older && { href: postPath(older), kicker: 'Previous post', title: older.data.title }}
-    next={newer && { href: postPath(newer), kicker: 'Next post', title: newer.data.title }} />
-  </article>
- </div>
+<PageLayout title={`${title} | Augur blog`} description={description} image={shareImage} article={{ published: publishDate, modified: updated }} feed>
+ <BlogMotion />
+ <script type="application/json" id="post-share-data" is:inline set:html={shareData}></script>
+ <div class="read-progress" aria-hidden="true"><span data-read-progress></span></div>
+ <article class="post">
+  <div class="post-art" aria-hidden="true"><HeritageField seed={2020} width={1440} height={804} /></div>
+  <div class="site-container post-layout">
+   <header class="post-head">
+    <a class="back-link" href="/blog/" data-enter>← The Augur Arc</a>
+    <a class="post-topic" href={`/blog/?topic=${topic}`} data-enter>{topics[topic].label}</a>
+    <h1 data-enter style="--enter-step:1">{title}</h1>
+    <p class="post-dek" data-enter style="--enter-step:2">{description}</p>
+    <div class="post-meta" data-enter style="--enter-step:3">
+     <p class="post-byline">
+      <span>By {author}</span>
+      <span class="byline-when">
+       <time datetime={isoDate(publishDate)}>{formatPostDate(publishDate)}</time>
+       {updated && <span>Updated <time datetime={isoDate(updated)}>{formatPostDate(updated)}</time></span>}
+       <span>{readingMinutes(post)} min read</span>
+      </span>
+     </p>
+     <PostShare title={title} url={url} variant="compact" />
+    </div>
+   </header>
+   {/* After the header in source, so the title comes first for screen readers and keyboards; the grid places it in
+       the left column. */}
+   <div class="post-aside" data-field-skip>
+    {hasContents && <div class="aside-sticky" data-enter style="--enter-step:4"><PostContents headings={contents} variant="rail" /></div>}
+   </div>
+   {hasContents && <div class="post-bar"><PostContents headings={contents} variant="bar" /></div>}
+   <div class="post-cover" data-enter style="--enter-step:4">
+    <Image src={featuredImage} alt="" widths={[680, 1020, 1360]} sizes="(max-width: 767px) calc(100vw - 48px), 680px" loading="eager" fetchpriority="high" />
+   </div>
+   <div class="post-text" data-post-text data-field-skip><Prose class="post-prose"><Content /></Prose></div>
+   <div class="post-end"><PostShare title={title} url={url} variant="row" /></div>
+  </div>
+ </article>
+ <section class="keep-reading" aria-labelledby="keep-reading-heading">
+  <div class="site-container">
+   <div class="keep-head">
+    <h2 id="keep-reading-heading" class="marked">Keep reading</h2>
+    <a class="line-link all-link" href="/blog/"><span class="button-label">All posts</span></a>
+   </div>
+   <ol class="queue">{queue.map(item => <li data-reveal><PostCard post={item.post} label={item.label} /></li>)}</ol>
+  </div>
+ </section>
 </PageLayout>
+<script>
+ // The green line across the top of the window fills as the reader moves through the text: empty while its top is
+ // below the top of the window, full once its end reaches the bottom.
+ const text=document.querySelector<HTMLElement>('[data-post-text]');
+ const line=document.querySelector<HTMLElement>('[data-read-progress]');
+ if(text&&line){
+  let queued=false;
+  const update=()=>{
+   queued=false;
+   const box=text.getBoundingClientRect();
+   line.style.transform=`scaleX(${Math.min(1,Math.max(0,-box.top/Math.max(1,box.height-innerHeight))).toFixed(4)})`;
+  };
+  addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(update);}},{passive:true});
+  addEventListener('resize',update);
+  update();
+ }
+ // X's widgets.js loads only on a post with an embedded X post (rehype-tweets), once one comes within reach of the
+ // screen; it swaps each blockquote.twitter-tweet for the post. Without it the blockquotes stay as links.
+ const embeds=[...document.querySelectorAll('blockquote.twitter-tweet')];
+ if(embeds.length){
+  const load=()=>{
+   if(document.querySelector('script[data-x-widgets]'))return;
+   const script=document.createElement('script');
+   script.src='https://platform.twitter.com/widgets.js';script.async=true;script.charset='utf-8';script.dataset.xWidgets='';
+   document.head.append(script);
+  };
+  if('IntersectionObserver' in window){
+   const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();load();}},{rootMargin:'800px 0px'});
+   embeds.forEach(embed=>observer.observe(embed));
+  }else load();
+ }
+</script>
 <style>
- .post-meta{margin-top:24px;color:var(--muted-foreground)}
- .article-body{padding-block:64px 96px}
- .reading-column{max-width:720px}
- @media(max-width:600px){.article-body{padding-block:40px 64px}}
+ /* One grid for the whole article: the "On this page" rail runs beside the title and the text; the header, cover
+    and text share one 680px column, so the cover lines up with the text on both edges. At 18px, full lines run to
+    about 80 characters (Schibsted Grotesk is narrow; 780px ran past 90). Below 1024px the column is centred. */
+ /* Reading progress: a 3px green line fixed to the top of the window, above the site header. */
+ .read-progress{position:fixed;inset:0 0 auto;z-index:30;height:3px;pointer-events:none}
+ .read-progress span{display:block;height:100%;background:var(--primary);transform:scaleX(0);transform-origin:left}
+ .post{position:relative}
+ .post-art{position:absolute;inset:0 0 auto;height:720px;overflow:hidden;pointer-events:none;mask-image:linear-gradient(to bottom,#000 55%,transparent)}
+ .post-layout{position:relative;display:grid;grid-template-columns:240px 96px minmax(0,680px);padding-block:40px 112px}
+ /* The rail's box spans the gap to the text too. With the text column, it is left out of the sitewide field
+    (page-field.ts, data-field-skip): the field places its squares once, around where things first sit, so the
+    sticky rail would scroll over them, and squares in the text's ragged edges and heading gaps sat on the reading
+    column. The field stays in the margins. */
+ .post-aside{grid-column:1/span 2;grid-row:1/span 5}
+ .post-head,.post-bar,.post-cover,.post-text,.post-end{grid-column:3}
+
+ /* The rail stays in view and clears the site header while headroom.ts shows it (96px tall). */
+ .aside-sticky{position:sticky;top:40px;width:240px;max-height:calc(100vh - 80px);overflow-y:auto;scrollbar-width:thin;padding-top:12px;transition:top 280ms var(--ease-reveal)}
+ :global(html:has(.site-header[data-stuck]:not([data-hidden]))) .aside-sticky{top:136px;max-height:calc(100vh - 176px)}
+
+ .post-head{display:flex;flex-direction:column;align-items:start}
+ .back-link{display:inline-flex;align-items:center;min-height:44px;margin-bottom:16px;font-size:15px;color:var(--muted-foreground);text-decoration:none}
+ .back-link:hover{color:var(--foreground);text-decoration:underline;text-underline-offset:5px}
+ .post-topic{display:inline-flex;align-items:center;gap:10px;font:600 14px/20px var(--font-heading);color:var(--primary);text-decoration:none}
+ .post-topic::before{content:'';width:6px;height:6px;background:var(--primary)}
+ .post-topic:hover{text-decoration:underline;text-underline-offset:5px}
+ h1{margin-top:14px;font-size:clamp(36px,3.4vw,50px);line-height:1.12;letter-spacing:-.02em;text-wrap:balance}
+ .post-dek{margin-top:18px;font-size:20px;line-height:31px;color:var(--muted-foreground);text-wrap:pretty}
+ /* Separators trail each item and items never break inside, so a wrapped byline ends a line with "·" rather
+    than starting one. The byline sits on the left, the compact share buttons on the right of the same line. */
+ .post-meta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px 24px;width:100%;margin-top:24px}
+ .post-byline{display:flex;flex-wrap:wrap;gap:4px 0;font-size:15px;line-height:22px;color:var(--muted-foreground)}
+ .byline-when{display:flex;flex-wrap:wrap;gap:4px 0}
+ .post-byline>span:first-child,.byline-when>*{white-space:nowrap}
+ .post-byline>span:first-child::after,.byline-when>:not(:last-child)::after{content:'·';margin-inline:10px}
+
+ .post-bar{display:none}
+ .post-cover{margin-block:40px 56px}
+ .post-cover :global(img){display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border:1px solid var(--web-outline);background:var(--web-quiet)}
+ .post-end{margin-top:64px;padding-top:32px;border-top:1px solid var(--web-outline)}
+ /* A post that ends with a sign-off already closes on its rule, so the share block doesn't add a second one. */
+ .post-layout:has(.signoff:last-child) .post-end{margin-top:48px;padding-top:0;border-top:0}
+
+ /* Reading text, over Prose's defaults: a calmer body colour than the headings, 1.7 line height, and paragraph
+    gaps close to a full line. Section headings carry a small green square in the margin. Anchors land below the
+    site header when it slides back in. */
+ .post-text :global(.prose-article.post-prose){--post-text:color-mix(in srgb,var(--foreground) 86%,var(--background));font-size:18px;line-height:1.7;color:var(--post-text)}
+ .post-text :global(.prose-article.post-prose :where(p,ul,ol,blockquote,pre,figure,hr,.table-scroll,.callout,img,.prose-card,.twitter-tweet)+*){margin-top:28px}
+ .post-text :global(.prose-article.post-prose :where(h2,h3)){color:var(--foreground);scroll-margin-top:128px;text-wrap:balance}
+ .post-text :global(.prose-article.post-prose :where(h2)){position:relative;font-size:28px;line-height:36px;letter-spacing:-.01em;margin-top:72px}
+ .post-text :global(.prose-article.post-prose :where(h2)::before){content:'';position:absolute;left:-26px;top:14px;width:8px;height:8px;background:var(--primary)}
+ .post-text :global(.prose-article.post-prose :where(h3)){font-size:21px;line-height:30px;margin-top:44px}
+ .post-text :global(.prose-article.post-prose :where(h2,h3)+*){margin-top:14px}
+ .post-text :global(.prose-article.post-prose :where(li+li)){margin-top:12px}
+ .post-text :global(.prose-article.post-prose :where(strong,a)){color:var(--foreground)}
+ .post-text :global(.prose-article.post-prose>:where(:first-child)){margin-top:0}
+
+ /* Standfirst: an italic-only opening paragraph (rehype-post-text) set as a larger lead, upright. Sign-off: one
+    after the sections, set small and muted under a rule. */
+ .post-text :global(.prose-article.post-prose .standfirst){font-size:21px;line-height:33px;color:var(--foreground);text-wrap:pretty}
+ .post-text :global(.prose-article.post-prose .standfirst em){font-style:normal}
+ .post-text :global(.prose-article.post-prose .signoff){padding-top:24px;border-top:1px solid var(--web-outline);font-size:16px;line-height:26px;color:var(--muted-foreground)}
+
+ /* Callouts (paragraphs that opened with 👉): a pointer in a quiet panel with a green edge. */
+ .post-text :global(.prose-article.post-prose .callout){position:relative;padding:16px 20px 16px 52px;border:1px solid var(--web-outline);border-left:2px solid var(--primary);background:var(--web-quiet);color:var(--foreground);font-size:17px;line-height:28px}
+ .post-text :global(.prose-article.post-prose .callout::before){content:'→';position:absolute;left:20px;top:16px;font:600 17px/28px var(--font-heading);color:var(--primary)}
+ .post-text :global(.prose-article.post-prose .callout+.callout){margin-top:8px}
+
+ /* Notices (ProseCard): a labelled panel. rehype-post-text lifts the bold opening ("MIGRATION CLOSED") into a
+    label above the note. */
+ .post-text :global(.prose-article.post-prose .prose-card){padding:20px 24px;border:1px solid var(--web-outline);border-left:2px solid var(--primary);background:var(--web-quiet);color:var(--foreground);font-size:16px;line-height:26px}
+ .post-text :global(.prose-article.post-prose .notice-label){display:flex;align-items:center;gap:10px;margin-bottom:8px;font:600 12px/16px var(--font-heading);letter-spacing:.08em;color:var(--primary)}
+ .post-text :global(.prose-article.post-prose .notice-label::before){content:'';width:6px;height:6px;background:var(--primary)}
+
+ /* In-post images: centred and as wide as the column allows, up to the width rehype-post-images sets per image (its
+    own width, or less where it would be taller than 760px). Wide charts fill the column, small screenshots stay at
+    their own size, portrait diagrams fit about a screen, and the size is known before the image loads. */
+ .post-text :global(.prose-article.post-prose img){width:100%;max-width:min(100%,var(--image-max,100%));height:auto;margin-inline:auto}
+
+ /* X posts (rehype-tweets): X's embed replaces each blockquote, centred (data-align); until it loads, or without it,
+    the blockquote is a small linked panel, centred the same way. */
+ .post-text :global(.prose-article.post-prose blockquote.twitter-tweet){max-width:550px;margin-inline:auto;padding:18px 22px;border:1px solid var(--web-outline);background:var(--web-quiet);color:var(--muted-foreground);font-size:16px;line-height:26px}
+ .post-text :global(.prose-article.post-prose blockquote.twitter-tweet>*+*){margin-top:6px}
+ .post-text :global(.prose-article.post-prose blockquote.twitter-tweet a){font:600 15px/22px var(--font-heading);text-decoration:none}
+ .post-text :global(.prose-article.post-prose blockquote.twitter-tweet a:hover){text-decoration:underline;text-underline-offset:4px}
+ /* X's frame holds a light-scheme document; giving the frame the same scheme stops the browser painting its
+    square corners white around the rounded post on this dark page. */
+ .post-text :global(.prose-article.post-prose .twitter-tweet-rendered iframe){color-scheme:light}
+
+ .keep-reading{border-top:1px solid var(--web-outline);padding-block:72px 112px}
+ .keep-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:32px}
+ .keep-head h2{position:relative;font-size:28px;line-height:36px;letter-spacing:-.01em}
+ .marked::before{content:'';position:absolute;left:-22px;top:14px;width:8px;height:8px;background:var(--primary)}
+ .all-link{display:inline-flex;align-items:center;min-height:44px;font:600 15px/22px var(--font-heading);color:var(--foreground)}
+ .queue{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;list-style:none;margin:0;padding:0}
+
+ @media(max-width:1200px){.post-layout{grid-template-columns:200px 56px minmax(0,680px)}.aside-sticky{width:200px}}
+ @media(max-width:1023px){
+  .post-layout{grid-template-columns:minmax(0,680px);justify-content:center;padding-block:28px 80px}
+  .post-aside{display:none}
+  .post-head,.post-bar,.post-cover,.post-text,.post-end{grid-column:1}
+  .post-cover{margin-block:32px 40px}
+  /* No box of its own, so the sticky Contents bar inside it sticks along the whole article grid. The bar keeps a
+     gap from the byline and share buttons above it. */
+  .post-bar{display:contents}
+  .post-bar :global(.contents-bar){margin-top:24px}
+  .queue{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+  .queue>li:nth-child(3){display:none}
+  .post-text :global(.prose-article.post-prose :where(h2)::before){left:-20px}
+  .marked::before{left:-18px}
+ }
+ @media(max-width:767px){
+  .back-link{margin-bottom:8px}
+  h1{font-size:34px}
+  .post-dek{font-size:18px;line-height:28px}
+  /* The byline takes two lines with the share buttons beside it; on the narrowest phones the buttons wrap below. */
+  .post-meta{gap:12px 16px;margin-top:20px}
+  .post-byline{font-size:14px;line-height:20px;flex-direction:column;gap:4px}
+  .post-byline>span:first-child::after{content:none}
+  .post-text :global(.prose-article.post-prose){font-size:17px}
+  .post-text :global(.prose-article.post-prose :where(p,ul,ol,blockquote,pre,figure,hr,.table-scroll,.callout,img,.prose-card,.twitter-tweet)+*){margin-top:24px}
+  .post-text :global(.prose-article.post-prose :where(h2)){font-size:24px;line-height:32px;margin-top:56px}
+  .post-text :global(.prose-article.post-prose :where(h2)::before){left:-16px;top:12px;width:6px;height:6px}
+  .post-text :global(.prose-article.post-prose :where(h3)){font-size:19px;line-height:28px;margin-top:36px}
+  .post-text :global(.prose-article.post-prose .standfirst){font-size:19px;line-height:30px}
+  .post-text :global(.prose-article.post-prose .callout){padding:14px 16px 14px 44px;font-size:16px;line-height:26px}
+  .post-text :global(.prose-article.post-prose .callout::before){font-size:16px;line-height:26px}
+  .post-text :global(.prose-article.post-prose .prose-card){font-size:16px;line-height:26px}
+  .post-text :global(.prose-article.post-prose .callout::before){left:16px;top:14px}
+  .keep-reading{padding-block:56px 80px}
+  .keep-head h2{font-size:24px;line-height:32px}
+  .marked::before{left:-16px;top:13px;width:6px;height:6px}
+  .queue{grid-template-columns:1fr;gap:20px}
+  .queue>li:nth-child(3){display:block}
+ }
+ @media(prefers-reduced-motion:reduce){.aside-sticky{transition:none}}
+ @media print{.keep-reading,.post-art,.read-progress{display:none}}
+ @media(forced-colors:active){.read-progress span{background:Highlight}}
 </style>
