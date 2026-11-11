@@ -17,12 +17,14 @@ const learn = defineCollection({
 // Ported from the old augur.net (docs/reference/ported-content.md). Served at their old URLs and not
 // linked from the header, homepage or Learn index.
 
-// Blog posts, one folder each: /blog/<folder>/. `featuredImage` feeds the index cards.
+// Blog posts, one folder each: /blog/<folder>/. `featuredImage` is the cover on the index and the post page;
+// post bodies don't repeat it. `topic` groups posts on /blog/ (labels in src/data/blog.ts).
 const blog = defineCollection({
   loader: glob({ pattern: '*/index.mdx', base: './src/content/blog' }),
   schema: ({ image }) => z.object({
     title: z.string(), description: z.string(), author: z.string(),
     publishDate: z.date(), updatedDate: z.date().optional(), tags: z.array(z.string()).optional(),
+    topic: z.enum(['progress-report', 'moon-fork', 'research']),
     featuredImage: image(),
   }),
 });
