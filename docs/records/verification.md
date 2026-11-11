@@ -15,6 +15,21 @@ Dated checks, newest first, with what each did and did not cover. A check is evi
 - The contact form against Proton's real SMTP server and a deployed `augur-forms` Worker; it has been checked only locally, with the `log` provider and a fake SMTP server (29 October 2026).
 - Live inspection of the Figma file, and a visual-conformity audit against it. Hover, focus, error, reduced-motion and responsive states need browser checks before conformity with the design is claimed.
 
+## 11 November 2026: blog index and post pages
+
+Checked on `feat/new-blog-page` at `2fba518` with headless Chromium driven over the DevTools protocol, against `astro dev` and against `npm run build` served by `astro preview`. The desktop app's built-in browser ran hidden, which throttles scrolling, so it was used for a first look only. Pages: `/blog/`, the longest post (`augur-testing-past-building-future`, seven sections), a short one (`phase-1-the-escalation-game`, two) and the one with X embeds (`q2-2026-progress-report`).
+
+- Widths 320, 360, 375, 390, 430, 768, 820, 1000, 1024, 1100, 1280 and 1440px: no horizontal overflow on those pages.
+- Reading measure on the longest post: full lines ran to a median of 91 characters (78 to 98) in the 780px column and run to 78 (74 to 82) in the 680px one, at every width from 820 to 1440px.
+- "On this page" rail at 1440px: each of the seven links brought its heading to 152px below the top of the window and marked it current. The Contents bar at 390 and 820px: before the change, choosing the fourth section left its heading 154px above the window; after it, the heading lands 152px down, under the 54px bar, and a press outside the open list closes it. Escape was not tried.
+- A jump made in the first 3 seconds of a first visit, while the announcement bar waits to drop in: a real mouse click or Enter lands on the heading; a scripted `element.click()`, which sends no pointer or key event, is cut short about 40px down by the bar's settle scroll.
+- `/blog/`: a topic filter, page 2 and the back button updated the grid, the address and the status text; the tab order ran from the skip link through the header, the RSS link, the four filters and the cards, and a focused card showed a 2px ring.
+- No JavaScript (script execution turned off through the protocol, not a browser setting): the featured card and all 15 other posts show and the filters and page links stay hidden; on a post the Contents disclosure opens over the text and stays open after a jump until it is closed.
+- Reduced motion (emulated): no running animations, every entrance element visible and smooth scrolling off, on `/blog/` and a post.
+- X embeds: the frame's corner pixels were white (255, 255, 255) before and match the page after.
+
+Not checked: Safari, Firefox, a real phone, screen readers, print, forced colors, 200% zoom and page performance.
+
 ## 31 October 2026: production after the deploy race
 
 PR #1 (merge `e4939a0`) and PR #2 (merge `1cd2034`) were merged into `main` seconds apart, and Workers Builds built each merge. The two builds raced: PR #1's build, which did not contain PR #2, finished last and its deploy replaced production with the old site. Production was restored by deploying the already-built version `8824ad7a-d85a-4ef2-b6db-1562feeb4917` to 100% with `cf workers deployments create`; nothing was rebuilt. The recovery steps and the one-at-a-time merge rule are in [deploy](../guides/deploy.md#one-deploy-at-a-time).
