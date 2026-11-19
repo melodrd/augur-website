@@ -19,7 +19,8 @@ import {forms} from '../../data/forms';
 // it unchanged.
 const reveal=Astro.url.pathname==='/'?'':undefined;
 // `band={false}` drops the contact call for a page that ends with its own contact block, so the two don't
-// stack: the FAQ's "Still have a question?" (owner, 15 Nov 2026). The footer proper stays, newsletter included.
+// stack: the FAQ's "Still have a question?" and the blog's BlogContact (owner, 15 Nov 2026). The footer proper
+// stays, newsletter included.
 interface Props { band?: boolean }
 const { band = true } = Astro.props;
 // The newsletter field has its own switch (forms.newsletter). Off, the logo stands alone in its column.
@@ -102,6 +103,12 @@ const url=forms.newsletterUrl;
 .contact-band{padding-block:var(--section-space)}
 .contact-band :global(.section-heading){margin-bottom:0}
 .contact-copy{display:grid;justify-items:start;gap:32px}
+/* Augur's Green square before the title, as on the blog's and the FAQ's closing calls (melo, 15 Nov 2026). It
+   hangs in the page margin, so the title keeps the left edge of the section headings above; it scales with the
+   title and sits at the middle of its first line. */
+#contact-title{position:relative}
+#contact-title::before{content:'';position:absolute;left:-.57em;top:calc((1lh - .25em)/2);width:.25em;height:.25em;background:var(--primary)}
+@media(forced-colors:active){#contact-title::before{background:Highlight}}
 /* The footer points to the contact page alone; the page gives the email address (owner, 30 Oct 2026). */
 
 /* The footer proper: one full-width band, the page container inside it. */

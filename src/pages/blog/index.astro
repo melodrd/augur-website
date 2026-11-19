@@ -2,6 +2,7 @@
 import PageLayout from '../../layouts/PageLayout.astro';
 import BlogMotion from '../../components/blog/BlogMotion.astro';
 import PostCard from '../../components/blog/PostCard.astro';
+import BlogContact from '../../components/blog/BlogContact.astro';
 import { getPosts, topics, type Topic } from '../../data/blog';
 // The old augur.net blog index ("The Augur Arc"): a short header, a row of topic filters, the newest post as a
 // featured card, then every other post in a grid, nine to a page. Without JavaScript the filters and page links stay
@@ -15,7 +16,7 @@ const filters: { value: Topic | 'all'; label: string }[] = [
  ...(Object.keys(topics) as Topic[]).map(value => ({ value, label: topics[value].heading })),
 ];
 ---
-<PageLayout title="The Augur Arc | Augur blog" description="News, updates, and progress from the Augur reboot" feed>
+<PageLayout title="The Augur Arc | Augur blog" description="News, updates, and progress from the Augur reboot" feed contactBand={false}>
  <BlogMotion />
  <header class="site-container blog-head">
   <div>
@@ -43,6 +44,7 @@ const filters: { value: Topic | 'all'; label: string }[] = [
   <ul class="post-grid">{posts.map(post => <li data-post data-reveal data-latest={post === latest ? '' : undefined}><PostCard post={post} /></li>)}</ul>
   <nav class="pager" aria-label="Pages" data-blog-pager hidden></nav>
  </section>
+ <BlogContact />
 </PageLayout>
 <script>
  const tools=document.querySelector<HTMLElement>('[data-blog-tools]');

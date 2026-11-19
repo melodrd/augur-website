@@ -1,0 +1,47 @@
+---
+import Icon from '../primitives/Icon.astro';
+import { links } from '../../data/links';
+import { pages } from '../../data/navigation';
+// The blog's own contact call: the last block of /blog/ and of every post, in place of the footer's, which both
+// pages leave out (contactBand={false}, as the FAQ does). The footer's call is a section heading on the homepage's
+// 500 / 668 grid; nothing else on a blog page uses that grid, so there it stood as a stray heading in open space.
+// This one is a row in the blog's own terms: a marked heading and one sentence on the left, as "Keep reading" is
+// headed, and the two actions on the right. `post` words the heading for a single post.
+interface Props { post?: boolean }
+const { post = false } = Astro.props;
+---
+<section class="blog-contact" aria-labelledby="blog-contact-heading">
+ <div class="site-container call" data-reveal>
+  <div class="call-copy">
+   <h2 id="blog-contact-heading">{post ? 'Questions about this post?' : 'Questions about a post?'}</h2>
+   <p>The team is active on Discord and happy to take questions and feedback on anything published here.</p>
+  </div>
+  <div class="call-actions">
+   <a class="button" href={links.discord.url}><Icon name="discord-logo" /><span class="button-label">Ask on Discord</span><Icon name="arrow-up-right" /></a>
+   <a class="button outline" href={pages.contact}><span class="button-label">Talk to us</span></a>
+  </div>
+ </div>
+</section>
+<style>
+ /* The section before it (the post grid, "Keep reading") brings the space above; this adds the space below. */
+ .blog-contact{padding-bottom:var(--section-space)}
+ /* One row while both halves fit; under that the actions drop below the sentence, on the same left edge. */
+ .call{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:28px 48px}
+ .call-copy{flex:1 1 420px;max-width:560px}
+ /* The heading and its Green square match "Keep reading" on the post page. */
+ h2{position:relative;font-size:28px;line-height:36px;letter-spacing:-.01em}
+ h2::before{content:'';position:absolute;left:-22px;top:14px;width:8px;height:8px;background:var(--primary)}
+ p{margin-top:8px;font-size:17px;line-height:26px;color:var(--muted-foreground);text-wrap:balance}
+ .call-actions{display:flex;flex-wrap:wrap;gap:8px}
+ @media(max-width:1023px){h2::before{left:-18px}}
+ @media(max-width:767px){
+  h2{font-size:24px;line-height:32px}
+  h2::before{left:-16px;top:13px;width:6px;height:6px}
+  p{font-size:16px;line-height:24px}
+  /* The two actions share the row, or stack at full width where a half would be under 200px. */
+  .call-actions{width:100%}
+  .call-actions .button{flex:1 1 200px}
+ }
+ @media(forced-colors:active){h2::before{background:Highlight}}
+ @media print{.blog-contact{display:none}}
+</style>

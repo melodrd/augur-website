@@ -36,7 +36,7 @@ Review flags in the FAQ entries ([src/data/faq/](../../src/data/faq/)), [product
 
 [SiteFooter.astro](../../src/components/layout/SiteFooter.astro) renders two parts, with no rule between them.
 
-- **Contact call.** "Talk to the Augur team.", its sentence and "Talk to us" (`pages.contact`), laid out as a section heading on the page's Navy. `band={false}` on the footer (`contactBand={false}` on [PageLayout.astro](../../src/layouts/PageLayout.astro)) leaves it out; `/faq/` does.
+- **Contact call.** "Talk to the Augur team.", its sentence and "Talk to us" (`pages.contact`), laid out as a section heading on the page's Navy. Augur's Green square hangs in the page margin before the title, a quarter of the type size. `band={false}` on the footer (`contactBand={false}` on [PageLayout.astro](../../src/layouts/PageLayout.astro)) leaves the call out; `/faq/`, `/blog/` and the post pages do, and each ends with its own ([FAQ](faq.md#the-page), [ported content](ported-content.md#differences-from-the-old-pages)).
 - **Footer proper.** A full-width band a step lighter than the page. On the 500 / 668 grid it holds the logo and the newsletter field (the email input and "Subscribe" joined as one control) on the left and the four `navigationGroups` columns on the right; under both, a base line with the funding sentence, `navigation.legal` and "Back to top" (`#top`). Each destination is listed once.
 - With `forms.newsletter` off, the logo stands alone in its column.
 - `/contact/` renders no footer ([contact](contact.md)).

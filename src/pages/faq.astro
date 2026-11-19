@@ -16,6 +16,7 @@ import { homeInline } from '../components/home/scripts/inline';
 // homepage's own section reveal (reveal.js: once per tab session, never on a reload or an arrival at a #question,
 // and not at all without JavaScript or with reduced motion). Each topic's name carries Augur's Green square.
 // The page ends with one contact block, "Still have a question?": the footer's own contact band is left out here.
+// Its heading carries the same square, on the topics' left edge, as the blog's closing call does (BlogContact.astro).
 // FAQPage structured data repeats the visible questions and answers. Google shows FAQ rich results only for a
 // few authoritative sites, so this is for any reader of the markup, with no rich result expected.
 const structured = {
@@ -35,7 +36,7 @@ const structuredJson = JSON.stringify(structured).replaceAll('<', '\\u003c');
    </section>)}
    <section class="faq-more" aria-labelledby="faq-more-heading" data-faq-flow>
     <div data-reveal>
-     <h2 id="faq-more-heading">Still have a question?</h2>
+     <h2 id="faq-more-heading"><span class="faq-mark" aria-hidden="true"></span>Still have a question?</h2>
      <p>Come ask us on Discord. The team is active there and happy to take any question about Augur. Building something? We'd love to hear about it.</p>
     </div>
     <div class="actions" data-reveal>
@@ -98,7 +99,7 @@ const structuredJson = JSON.stringify(structured).replaceAll('<', '\\u003c');
  /* The ending: the question and its sentence on the left; on the right the two actions as equal halves of the
     questions' column, so they line up under the boxes above. Where a half would be under 240px they stack. */
  .faq-more{align-items:center}
- .faq-more h2{font-size:28px;line-height:36px}
+ .faq-more h2{display:flex;align-items:center;gap:.32em;font-size:28px;line-height:36px}
  .faq-more p{max-width:440px;margin-top:12px;font-size:18px;line-height:28px;color:var(--muted-foreground)}
  .faq-more .actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px}
  @media(max-width:1200px){.faq-topic,.faq-more{gap:48px}}

@@ -8,6 +8,7 @@ import BlogMotion from '../../components/blog/BlogMotion.astro';
 import PostContents from '../../components/blog/PostContents.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import PostShare from '../../components/blog/PostShare.astro';
+import BlogContact from '../../components/blog/BlogContact.astro';
 import { getPosts, postPath, formatPostDate, isoDate, readingMinutes, readingQueue, postMarkdown, topics, type Post } from '../../data/blog';
 
 export async function getStaticPaths() {
@@ -31,7 +32,7 @@ const shareImage = { path: shareCover.src, width: Number(shareCover.attributes.w
 // What the share buttons copy, once per page. "<" is escaped so the text can't close the element.
 const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), url }).replace(/</g, '\\u003c');
 ---
-<PageLayout title={`${title} | Augur blog`} description={description} image={shareImage} article={{ published: publishDate, modified: updated }} feed>
+<PageLayout title={`${title} | Augur blog`} description={description} image={shareImage} article={{ published: publishDate, modified: updated }} feed contactBand={false}>
  <BlogMotion />
  <script type="application/json" id="post-share-data" is:inline set:html={shareData}></script>
  <div class="read-progress" aria-hidden="true"><span data-read-progress></span></div>
@@ -77,6 +78,7 @@ const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), ur
    <ol class="queue">{queue.map(item => <li data-reveal><PostCard post={item.post} label={item.label} /></li>)}</ol>
   </div>
  </section>
+ <BlogContact post />
 </PageLayout>
 <script>
  // The green line across the top of the window fills as the reader moves through the text: empty while its top is
