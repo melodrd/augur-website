@@ -6,8 +6,8 @@ import Brand from '../../components/primitives/Brand.astro';
 import { newsletter, type NewsletterResult } from '../../data/newsletter';
 // Where the footer form lands without JavaScript; the augur-forms Worker redirects here with its result.
 export function getStaticPaths() {
-  // Not built while the forms are off (forms.enabled).
-  if (!forms.enabled) return [];
+  // Not built while the footer's newsletter field is off (forms.newsletter).
+  if (!forms.newsletter) return [];
   return (Object.keys(newsletter.messages) as NewsletterResult[]).map(result => ({ params: { result } }));
 }
 const result = Astro.params.result as NewsletterResult;

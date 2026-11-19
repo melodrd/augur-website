@@ -3,41 +3,54 @@ import Brand from '../primitives/Brand.astro';
 import Icon from '../primitives/Icon.astro';
 import Button from '../primitives/Button.astro';
 import {navigation,navigationGroups,pages,type NavigationItem} from '../../data/navigation';
-import {links,isExternal} from '../../data/links';
+import {links} from '../../data/links';
 import {newsletter} from '../../data/newsletter';
 import {forms} from '../../data/forms';
-import {site} from '../../data/site';
-// The address stays for the newsletter's consent line; the contact band no longer shows it.
-// Both rows sit on the site's 500 / 80 / 668 heading grid, so the newsletter and the first
-// link column share one edge with every section above. One footer nav landmark; every
-// footer heading is an h2, a peer of the contact title rather than nested under it.
+// Two parts, with no rule and no box between or around them (melo, 15 Nov 2026).
+// 1. The contact call, on the page's own Navy and laid out as a section heading: the title on the left, its
+//    sentence and the action on the right.
+// 2. The footer proper, a full-width band a step lighter than the page, like the homepage's "Keep going" band.
+//    It holds the logo and the newsletter field on the left, the link directory on the right and a base line
+//    under both. Each destination is listed once: the community places are the Community column only.
+// The footer proper sits on the site's 500 / 80 / 668 heading grid, so the first link column and the legal
+// links share one edge with every section above. One footer nav landmark; every footer heading is an h2, a
+// peer of the contact title rather than nested under it.
 // On the homepage the footer settles in as one group, with no stagger (reveal.js); every other page renders
 // it unchanged.
 const reveal=Astro.url.pathname==='/'?'':undefined;
-// With the forms off (forms.enabled), the newsletter column points to where updates already appear.
-// `band={false}` drops the contact band (and with it the newsletter column) for a page that ends with its own
-// contact block, so the two don't stack: the FAQ's "Still have a question?" (owner, 15 Nov 2026).
+// `band={false}` drops the contact call for a page that ends with its own contact block, so the two don't
+// stack: the FAQ's "Still have a question?" (owner, 15 Nov 2026). The footer proper stays, newsletter included.
 interface Props { band?: boolean }
 const { band = true } = Astro.props;
-const follow:{label:string;href:string;logo?:string}[]=[{label:'Blog',href:links.archive.url},{label:'RSS feed',href:'/rss.xml'},{label:'X',href:links.x.url,logo:'x-logo'}];
+// The newsletter field has its own switch (forms.newsletter). Off, the logo stands alone in its column.
+const url=forms.newsletterUrl;
 ---
 <footer class="site-footer" data-reveal={reveal}>
   {band && <div id="contact" class="contact-band">
-    <div class="site-container footer-grid">
-      <div class="contact-copy"><h2 id="contact-title">Talk to the Augur team.</h2><p>Ask about the protocol or share feedback. Building on it? Tell us what your project needs.</p><div class="contact-actions"><Button href={pages.contact}>Talk to us</Button></div></div>
-      <div class="newsletter"><h2 id="newsletter-title">Follow Augur's progress</h2><p>Research, development and product updates.</p>
-        {forms.enabled ? <form class="newsletter-form" action={forms.url ? forms.url+newsletter.path : undefined} method={forms.url ? 'post' : 'dialog'} aria-labelledby="newsletter-title" data-newsletter={forms.url ? 'live' : 'offline'}>
-          <div class="newsletter-row"><div class="field"><label for="newsletter-email">Email address</label><input type="email" id="newsletter-email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required maxlength="254" aria-describedby={forms.url ? 'newsletter-email-error newsletter-consent' : 'newsletter-email-error'} /></div><Button type="submit" variant="outline">Subscribe</Button></div>
-          {forms.url && <div class="newsletter-trap" aria-hidden="true"><label for="newsletter-nickname">Leave this empty</label><input type="text" id="newsletter-nickname" name={forms.honeypot} tabindex="-1" autocomplete="off" /></div>}
-          <p class="field-error" id="newsletter-email-error" hidden></p>
-          <p class="newsletter-status" role="status" aria-live="polite" data-newsletter-status></p>
-          {forms.url && <p class="newsletter-consent" id="newsletter-consent">{newsletter.consent} <a href={pages.contact}>contact us</a>.</p>}
-        </form> : <ul class="follow-links">{follow.map(item=><li><a class="line-link" href={item.href}>{item.logo&&<Icon name={item.logo} class="social-logo"/>}<span class="button-label">{item.label}</span>{isExternal(item.href)&&<Icon name="arrow-up-right"/>}</a></li>)}</ul>}</div>
+    <div class="site-container section-heading">
+      <h2 id="contact-title">Talk to the Augur team.</h2>
+      <div class="contact-copy"><p class="lead">Ask about the protocol or share feedback. Building on it? Tell us what your project needs.</p><div class="contact-actions"><Button href={pages.contact}>Talk to us</Button></div></div>
     </div>
   </div>}
-  <div class="site-container footer-grid directory">
-    <div class="identity"><a href="/" aria-label="Augur home"><Brand /></a><p>Augur's work is funded and coordinated by the <a href={links.foundation.url}>Lituus Foundation<Icon name="arrow-up-right"/></a>.</p><ul class="legal-links" aria-label="Legal">{navigation.legal.map(item=><li><a href={item.href}>{item.label}</a></li>)}</ul></div>
-    <nav class="footer-links" aria-label="Footer">{navigationGroups.map(group=><div><h2>{group.label}</h2><ul>{group.items.map(item=><li><a class="line-link" href={item.href}>{(item as NavigationItem).logo&&<Icon name={(item as NavigationItem).logo!} class="social-logo"/>}<span class="button-label">{item.label}</span>{('external' in item && item.external)&&<Icon name="arrow-up-right"/>}</a></li>)}</ul></div>)}</nav>
+  <div class="footer-main">
+    <div class="site-container footer-grid directory">
+      <div class="identity">
+        <a href="/" aria-label="Augur home"><Brand /></a>
+        {forms.newsletter && <div class="newsletter"><h2 id="newsletter-title">Follow Augur's progress</h2><p>Research, development and product updates, by email.</p>
+          <form class="newsletter-form" action={url ? url+newsletter.path : undefined} method={url ? 'post' : 'dialog'} aria-labelledby="newsletter-title" data-newsletter={url ? 'live' : 'offline'}>
+            <div class="field"><label for="newsletter-email">Email address</label><div class="newsletter-control"><input type="email" id="newsletter-email" name="email" autocomplete="email" inputmode="email" enterkeyhint="send" autocapitalize="none" spellcheck="false" placeholder="you@example.com" required maxlength="254" aria-describedby="newsletter-email-error" /><button type="submit" class="button newsletter-submit">Subscribe</button></div></div>
+            {url && <div class="newsletter-trap" aria-hidden="true"><label for="newsletter-nickname">Leave this empty</label><input type="text" id="newsletter-nickname" name={forms.honeypot} tabindex="-1" autocomplete="off" /></div>}
+            <p class="field-error" id="newsletter-email-error" hidden></p>
+            <p class="newsletter-status" role="status" aria-live="polite" data-newsletter-status></p>
+            {!url && <noscript><p class="newsletter-note">Email sign-up isn’t connected yet, so nothing is sent or saved.</p></noscript>}
+          </form></div>}
+      </div>
+      <nav class="footer-links" aria-label="Footer">{navigationGroups.map(group=><div><h2>{group.label}</h2><ul>{group.items.map(item=><li><a class="line-link" href={item.href}>{(item as NavigationItem).logo&&<Icon name={(item as NavigationItem).logo!} class="social-logo"/>}<span class="button-label">{item.label}</span>{('external' in item && item.external)&&<Icon name="arrow-up-right"/>}</a></li>)}</ul></div>)}</nav>
+    </div>
+    <div class="site-container footer-grid base">
+      <p>Augur's work is funded and coordinated by the <a href={links.foundation.url}>Lituus Foundation<Icon name="arrow-up-right"/></a>.</p>
+      <div class="base-links"><ul class="legal-links" aria-label="Legal">{navigation.legal.map(item=><li><a href={item.href}>{item.label}</a></li>)}</ul><a class="to-top" href="#top">Back to top<Icon name="arrow-right"/></a></div>
+    </div>
   </div>
 </footer>
 <script>
@@ -85,35 +98,62 @@ const follow:{label:string;href:string;logo?:string}[]=[{label:'Blog',href:links
  }
 </script>
 <style>
+/* The contact call is a section heading (global.css) that ends its section, so it drops the heading's gap. */
+.contact-band{padding-block:var(--section-space)}
+.contact-band :global(.section-heading){margin-bottom:0}
+.contact-copy{display:grid;justify-items:start;gap:32px}
+/* The footer points to the contact page alone; the page gives the email address (owner, 30 Oct 2026). */
+
+/* The footer proper: one full-width band, the page container inside it. */
+.footer-main{padding-block:80px 40px;background:var(--web-quiet)}
 .footer-grid{display:grid;grid-template-columns:minmax(0,500fr) minmax(0,668fr);gap:80px}
-.contact-band{padding-block:96px}
-.contact-copy h2{margin-bottom:16px;text-wrap:balance}.contact-copy p{font-size:18px;line-height:28px;color:var(--muted-foreground);max-width:540px;margin-bottom:24px}
-/* The footer, consent line included, points to the contact page alone; the page gives the email address (owner, 30 Oct 2026; consent line 31 Oct 2026). */
-.contact-actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 32px}
-.newsletter h2{font-size:20px;line-height:26px;letter-spacing:0;margin-bottom:12px}.newsletter>p{color:var(--muted-foreground);margin-bottom:24px}
-.newsletter-row{display:flex;align-items:flex-end;gap:12px}.newsletter .field{flex:1;min-width:0;gap:12px}.newsletter .field>label{font-weight:400}.newsletter .field input{background:var(--web-tile)}
+.directory{align-items:start}
+/* The logo heads the first column, level with the link headings; the newsletter sits under it, no wider than
+   its field reads well. */
+.identity{display:grid;justify-items:start;gap:40px}
+.newsletter{width:100%;max-width:440px}
+.newsletter h2{font-size:20px;line-height:26px;letter-spacing:0;margin-bottom:8px}.newsletter>p{color:var(--muted-foreground);margin-bottom:20px}
+/* The field and its button are one control: a Navy well, a step darker than the band, with the design system's
+   hairline along its base and the button joined to its right end at the same height. The button is quiet until
+   it is pointed at or focused, then Green, so the contact call above keeps the one filled Green button. The
+   focus ring is drawn inside the field, where the joined button cannot cover it. */
+.newsletter .field{gap:10px}
+.newsletter-control{display:flex;align-items:stretch}
+.newsletter .field input{flex:1;background:var(--web-well)}.newsletter .field input:hover{background:var(--background)}
+.newsletter .field input:focus-visible{outline-offset:-2px}
+.newsletter-submit{flex:none;min-height:0;padding:0 20px;border:0;border-bottom:1px solid var(--color-mist);background:var(--web-raised);color:var(--foreground);transition:background-color 180ms ease-out,color 180ms ease-out,border-color 180ms ease-out}
+.newsletter-submit:hover,.newsletter-submit:focus-visible{background:var(--primary);color:var(--primary-foreground);border-bottom-color:var(--primary)}
+.newsletter-submit:active{background:var(--primary-active);border-bottom-color:var(--primary-active)}
+@media(prefers-reduced-motion:reduce){.newsletter-submit{transition:none}}
+@media(forced-colors:active){.newsletter-submit{border:1px solid ButtonText}}
 .newsletter .field-error{margin-top:12px}.newsletter-status{margin-top:12px;font-size:14px;line-height:20px;color:var(--muted-foreground)}.newsletter-status:empty{display:none}.newsletter-status a{color:var(--foreground)}
-.newsletter-consent{margin-top:12px;font-size:14px;line-height:20px;color:var(--muted-foreground)}.newsletter-consent a{color:var(--foreground)}
-.follow-links{display:flex;flex-wrap:wrap;gap:4px 32px;list-style:none;padding:0;margin:0}.follow-links a{display:flex;align-items:center;gap:4px;min-height:44px;line-height:24px}
-.follow-links :global(.web-icon),.follow-links :global(.web-icon svg){width:14px;height:14px}.follow-links :global(.social-logo),.follow-links :global(.social-logo svg){width:18px;height:18px}.follow-links :global(.social-logo){margin-right:6px;color:var(--muted-foreground)}
+/* No consent line under the field (melo, 15 Nov 2026); the note is the no-JavaScript line of the offline field. */
+.newsletter-note{margin-top:12px;font-size:14px;line-height:20px;color:var(--muted-foreground)}
 /* Off-screen rather than display:none, so form-filling bots still see the trap field. */
 .newsletter-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
-.directory{padding-block:48px 64px;border-top:1px solid var(--web-outline)}
-/* A hairline opens the directory, so the contact band and the links read as two groups. The logo heads the
-   first column level with the link headings, and the funding line sits 16 under it. */
-.identity{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;gap:16px}.identity p{font-size:14px;line-height:22px;color:var(--muted-foreground);max-width:300px}
-/* Privacy and Terms sit under the funding line, in its size and colour. */
-.legal-links{display:flex;flex-wrap:wrap;gap:4px 24px;list-style:none;padding:0;margin:0;font-size:14px;line-height:22px}.legal-links a{display:inline-flex;align-items:center;min-height:24px;color:var(--muted-foreground)}.legal-links a:hover{color:var(--foreground)}
-.identity p a{color:var(--foreground);white-space:nowrap}.identity p a:hover{text-decoration-thickness:2px}.identity p :global(.web-icon),.identity p :global(.web-icon svg){width:12px;height:12px}.identity p :global(.web-icon){margin-left:2px;vertical-align:-1px}
 .footer-links{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px}
 .footer-links h2{font:600 14px/20px var(--font-heading);letter-spacing:0;color:var(--muted-foreground);margin-bottom:16px}.footer-links ul{list-style:none;padding:0;margin:0}
-.footer-links li a{display:flex;align-items:center;gap:4px;min-height:38px;line-height:24px}.footer-links :global(.web-icon),.footer-links :global(.web-icon svg){width:14px;height:14px}
+.footer-links li a{display:flex;align-items:center;gap:4px;min-height:40px;line-height:24px}.footer-links :global(.web-icon),.footer-links :global(.web-icon svg){width:14px;height:14px}
 /* Community destinations carry their logo before the name. */
 .footer-links :global(.social-logo),.footer-links :global(.social-logo svg){width:18px;height:18px}.footer-links :global(.social-logo){margin-right:6px;color:var(--muted-foreground);transition:color 180ms ease-out}.footer-links a:hover :global(.social-logo){color:var(--foreground)}
-/* Below 1280 a 1fr / 1fr contact row over four equal link columns with the same gap, so the
-   newsletter's edge lands on the third column; the identity row splits on that edge too. */
-@media(max-width:1279px){.footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}.directory{grid-template-columns:minmax(0,1fr)}.identity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 48px;align-items:center;padding-bottom:0}.legal-links{grid-column:2}.footer-links{gap:48px}}
-@media(max-width:767px){.contact-band{padding-block:64px}.footer-grid{grid-template-columns:minmax(0,1fr)}.directory{padding-block:40px 48px;row-gap:40px}.identity{display:flex;align-items:flex-start;gap:24px}.footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 24px}.footer-links li a{min-height:44px}}
-/* Under 375 px the field would clip its placeholder beside the button: stack them. */
-@media(max-width:374px){.newsletter-row{flex-direction:column;align-items:stretch}}
+/* The base line: the funding sentence under the logo's column; Privacy, Terms and the way back up under the
+   link columns, in one size and colour. Space alone sets it off from the directory. */
+.base{align-items:baseline;margin-top:72px;font-size:14px;line-height:22px;color:var(--muted-foreground)}
+.base p a{color:var(--foreground);white-space:nowrap}.base p a:hover{text-decoration-thickness:2px}.base p :global(.web-icon),.base p :global(.web-icon svg){width:12px;height:12px}.base p :global(.web-icon){margin-left:2px;vertical-align:-1px}
+.base-links{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 24px}
+.legal-links{display:flex;flex-wrap:wrap;gap:4px 24px;list-style:none;padding:0;margin:0}
+.legal-links a,.to-top{display:inline-flex;align-items:center;min-height:24px;color:var(--muted-foreground);text-decoration:none}.legal-links a:hover,.to-top:hover{color:var(--foreground)}
+/* The design system's arrow, turned to point up. */
+.to-top{gap:6px}.to-top :global(.web-icon),.to-top :global(.web-icon svg){width:14px;height:14px}.to-top :global(.web-icon){transform:rotate(-90deg);transition:transform 180ms ease-out}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){.to-top:hover :global(.web-icon){transform:rotate(-90deg) translateX(3px)}}
+@media(prefers-reduced-motion:reduce){.to-top :global(.web-icon){transition:none}}
+/* Below 1280 the footer is two equal halves: the logo and the newsletter side by side over four equal link
+   columns with the same gap, so the newsletter's edge lands on the third column; the base line splits on that
+   edge too. */
+@media(max-width:1279px){.footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:48px}.directory{grid-template-columns:minmax(0,1fr);row-gap:56px}.identity{grid-template-columns:repeat(2,minmax(0,1fr));gap:48px;width:100%}.newsletter{max-width:none}.footer-links{gap:48px}}
+@media(max-width:1023px){.contact-copy{gap:24px}}
+@media(max-width:767px){.footer-main{padding-block:56px 32px}.footer-grid{grid-template-columns:minmax(0,1fr)}.directory{row-gap:48px}.identity{grid-template-columns:minmax(0,1fr);gap:32px}.footer-links{grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 24px}.footer-links li a{min-height:44px}.base{row-gap:12px;margin-top:48px}}
+/* Under 375 px the joined button would clip the placeholder: both give up some padding. */
+@media(max-width:374px){.newsletter .field input{padding-inline:10px}.newsletter-submit{padding-inline:12px}}
+@media(forced-colors:active){.footer-main{border-top:1px solid CanvasText}}
 </style>

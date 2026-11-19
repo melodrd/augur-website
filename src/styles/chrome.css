@@ -45,9 +45,5 @@
 @media(prefers-reduced-motion:reduce){.site-header[data-headroom]{transition:none}}
 @media print{.site-header[data-headroom]{position:relative;transform:none}}
 
-/* Footer (item 7, from the 25 Oct audit). A hairline opens the link directory, so the contact band and
-   the links read as two groups (they shared one Navy with 48 px between them), and the funding line sits
-   16 under the logo instead of 130 px lower at the column's foot. */
-.site-footer .directory{border-top:1px solid var(--web-outline)}
-.site-footer .identity{justify-content:flex-start;gap:16px}
-@media(forced-colors:active){.site-footer .directory{border-top-color:CanvasText}}
+/* Footer: its rules are all in SiteFooter.astro. The hairline that opened the link directory (item 7, from
+   the 25 Oct audit) is gone: the footer proper is a band of its own, with no rule (melo, 15 Nov 2026). */

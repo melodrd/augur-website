@@ -26,21 +26,31 @@ The page renders through Astro components; browser scripts enhance the rendered 
 
 ## Content and destinations
 
-[navigation.ts](../../src/data/navigation.ts) links to the local pages (About, Contact through `pages.contact`, which every “Talk to us” uses, Brand assets, Products, FAQ, Learn through `pages.learn`, which the 404 page also uses, and REP), to the blog (`links.archive`, now the local `/blog/`) and to published resources (Whitepaper, community). `navigation.legal` puts Privacy (`/privacy/`) and Terms (`/terms/`) in the footer only, under the funding line. Products lists Augur Lituus, Zoltar and Augur Statoblast from [products.ts](../../src/data/products.ts), each marked `needsReview`. External destinations are centralized in [links.ts](../../src/data/links.ts).
+[navigation.ts](../../src/data/navigation.ts) links to the local pages (About, Contact through `pages.contact`, which every “Talk to us” uses, Brand assets, Products, FAQ, Learn through `pages.learn`, which the 404 page also uses, and REP), to the blog (`links.archive`, now the local `/blog/`) and to published resources (Whitepaper, community). `navigation.legal` puts Privacy (`/privacy/`) and Terms (`/terms/`) in the footer only, on its base line beside the funding sentence. Products lists Augur Lituus, Zoltar and Augur Statoblast from [products.ts](../../src/data/products.ts), each marked `needsReview`. External destinations are centralized in [links.ts](../../src/data/links.ts).
 
 [home-resources.ts](../../src/components/home/data/home-resources.ts) selects “Augur: Q2 2026 report” and “The Moon Fork report” for Learn More. The owner approved this selection for launch (jubalm, 30 October 2026). The earlier draft article choices were “Why disagreement makes an oracle stronger” and “Writing questions an oracle can answer”; neither has a local article route. Learn More currently links to the whitepaper and the blog (`/blog/`), whose two posts are now pages of this site.
 
 Review flags in the FAQ entries ([src/data/faq/](../../src/data/faq/)), [products.ts](../../src/data/products.ts) and in [walkthrough.ts](../../src/data/walkthrough.ts) (`walkthroughReview`) are content markers. The owner approved shipping the flagged content and reviewing the FAQ and walkthrough after launch (jubalm, 30 October 2026), so the flags stay in the code until that review.
 
+## Footer
+
+[SiteFooter.astro](../../src/components/layout/SiteFooter.astro) renders two parts, with no rule between them.
+
+- **Contact call.** "Talk to the Augur team.", its sentence and "Talk to us" (`pages.contact`), laid out as a section heading on the page's Navy. `band={false}` on the footer (`contactBand={false}` on [PageLayout.astro](../../src/layouts/PageLayout.astro)) leaves it out; `/faq/` does.
+- **Footer proper.** A full-width band a step lighter than the page. On the 500 / 668 grid it holds the logo and the newsletter field (the email input and "Subscribe" joined as one control) on the left and the four `navigationGroups` columns on the right; under both, a base line with the funding sentence, `navigation.legal` and "Back to top" (`#top`). Each destination is listed once.
+- With `forms.newsletter` off, the logo stands alone in its column.
+- `/contact/` renders no footer ([contact](contact.md)).
+
 ## Newsletter interest list
 
-The footer form collects addresses for a later newsletter; the site sends no email and uses no newsletter service. The site stays static: the form posts to the separate `augur-forms` Worker in [workers/forms](../../workers/forms/). Wording, the consent version and the shared address check are in [newsletter.ts](../../src/data/newsletter.ts); the Worker's address and the honeypot field name are in [forms.ts](../../src/data/forms.ts). The Worker imports both files.
+The footer form collects addresses for a later newsletter; the site sends no email and uses no newsletter service. The site stays static: the form posts to the separate `augur-forms` Worker in [workers/forms](../../workers/forms/). Wording, the consent version and the shared address check are in [newsletter.ts](../../src/data/newsletter.ts); the Worker's address and the honeypot field name are in [forms.ts](../../src/data/forms.ts). The Worker imports both files. The field has its own switch there, `newsletter` (on), apart from `enabled`, which governs the contact form; `forms.newsletterUrl` is the address it posts to.
 
 - [SiteFooter.astro](../../src/components/layout/SiteFooter.astro) posts `email`, plus an off-screen honeypot field `nickname`, to `PUBLIC_FORMS_URL` + `/subscribe`. With JavaScript, its script validates first, posts form-urlencoded with `Accept: application/json` (a simple cross-origin request, no preflight) and shows the returned message in the status or error element.
-- Without `PUBLIC_FORMS_URL` in a production build, the form is offline: `method="dialog"`, no consent line, and the script says nothing was sent or saved. Development defaults to `http://localhost:8788`.
+- Without `PUBLIC_FORMS_URL` in a production build, the form is offline: `method="dialog"`, and the script says nothing was sent or saved; without JavaScript a `<noscript>` line says the same. Development defaults to `http://localhost:8788`.
 - The Worker checks the `Origin` against `ALLOWED_ORIGINS` (403 otherwise), accepts only form bodies up to 16 KB, rejects a filled honeypot with the generic failure (never the thanks message), rate-limits, validates, then inserts into the `signups` table, ignoring duplicates. New and duplicate addresses get the same answer. Responses: JSON `{ ok, status, message, fieldErrors? }` with 200, 422 invalid, 400 rejected, 429 rate-limited or 503 unavailable; or, without JavaScript, a 303 to `SITE_URL` + `/newsletter/subscribed/`, `/newsletter/invalid/` or `/newsletter/error/`.
-- Those result pages are prerendered by [[result].astro](../../src/pages/newsletter/[result].astro) as `bare`, `noindex` pages.
+- Those result pages are prerendered by [[result].astro](../../src/pages/newsletter/[result].astro) as `bare`, `noindex` pages, while `forms.newsletter` is on.
 - A row holds `email`, `created_at`, `consent_version` and `source` only; the table is defined in [0001_signups.sql](../../workers/forms/migrations/0001_signups.sql). No IP or user agent is stored, and logs carry only the error text, never the address.
+- The footer shows no consent line under the field; sign-ups rely on the privacy policy and terms (melo, 18 November 2026). The Worker still stores `consentVersion` with each row, to be set to the privacy policy's revision when its rewrite lands ([open decisions](../records/open-decisions.md#content)).
 - Nobody is mailed or confirmed. A later newsletter service's double opt-in is the confirmation step.
 
 Deploy, database, export and removal commands are in [deploy](../guides/deploy.md#forms-worker-augur-forms).
