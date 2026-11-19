@@ -100,7 +100,7 @@ const gapAfter = (index: number) => index < history.length - 1 && history[index 
 </PageLayout>
 <style>
  .ruled{padding-top:72px}.ruled .section-heading{margin-bottom:48px}
- .hero-more{max-width:780px;margin-top:16px;font-size:18px;line-height:28px;color:var(--muted-foreground)}
+ .hero-more{max-width:65ch;font-size:18px;line-height:28px;color:var(--muted-foreground)}
  /* Mission: the statement is the heading; its reasoning fills the lead column. */
  .ruled .mission{margin-bottom:0}.mission h2{text-wrap:balance}.mission-copy p:not(.lead){margin-top:20px;font-size:18px;line-height:28px;color:var(--muted-foreground)}
  .cite{display:inline-flex;align-items:center;gap:4px;min-height:32px;margin-top:4px;font:400 14px/20px var(--font-heading);color:var(--muted-foreground);transition:color 180ms ease-out}
@@ -139,22 +139,16 @@ const gapAfter = (index: number) => index < history.length - 1 && history[index 
  .decides-body p{font-size:18px;line-height:28px;color:var(--muted-foreground)}
  .decides-body .button{margin-top:8px}
  /* How the work is done: each practice carries the public evidence for it. */
- .principles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
- .principles li{display:flex;flex-direction:column;padding-inline:40px}
- .principles li:first-child{padding-left:0}
- .principles li:last-child{padding-right:0}
- .principles li+li{border-left:1px solid var(--border-quiet)}
+ .principles{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px clamp(32px,5vw,80px)}
+ .principles li{display:flex;flex-direction:column}
  .principles p{margin-top:12px;font-size:17px;line-height:26px;color:var(--muted-foreground)}
- @media(max-width:1200px){.event{column-gap:48px}.decides{gap:48px}.principles li{padding-inline:32px}}
+ @media(max-width:1200px){.event{column-gap:48px}.decides{gap:48px}}
  @media(max-width:1023px){
   .event{grid-template-columns:1fr;grid-template-areas:"head" "text" "figure" "cite";grid-template-rows:auto;row-gap:8px}
   .event-text,.event .cite{margin-left:40px}.event-figure{margin:8px 0 0 40px}
   .builders{grid-template-columns:1fr;gap:16px}
   .decides{grid-template-columns:1fr;gap:16px;padding:32px 32px 24px}
   .principles{grid-template-columns:1fr}
-  .principles li,.principles li:first-child,.principles li:last-child{padding:24px 0 0}
-  .principles li:first-child{padding-top:0}
-  .principles li+li{border-left:0;border-top:1px solid var(--border-quiet);margin-top:24px}
  }
  @media(max-width:767px){
   .event-figure strong{font-size:40px;line-height:48px}

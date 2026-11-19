@@ -89,6 +89,19 @@
 }
 @utility section { padding-block:var(--section-space); }
 
+/* PageHero supplies the space before the first content section. */
+.page-hero + section.site-container { padding-block-start:0; }
+
+hr { border:0; margin-block:3rem; }
+
+/* Markdown tables in articles and FAQ answers share the same reading and focus treatment. */
+.table-scroll { max-width:100%; overflow-x:auto; }
+.table-scroll:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+.table-scroll table { width:100%; border-collapse:collapse; font-size:15px; line-height:22px; }
+.table-scroll :is(th,td) { padding:12px 16px; text-align:left; vertical-align:top; }
+.table-scroll th { background:var(--web-tile); font:600 14px/20px var(--font-heading); color:var(--foreground); }
+.table-scroll tbody tr:nth-child(even) { background:color-mix(in srgb,var(--foreground) 4%,transparent); }
+
 @layer components {
   .section-heading { @apply grid items-start gap-20; grid-template-columns:minmax(0,500fr) minmax(0,668fr); margin-bottom:var(--heading-gap); }
   .display { font:600 clamp(40px,5vw,72px)/1.083333 var(--font-heading); }

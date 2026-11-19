@@ -10,6 +10,7 @@ import introScript from '../motion/page-intro.js?raw';
 import introStyle from '../styles/page-intro.css?inline';
 import { site } from '../data/site';
 import { links } from '../data/links';
+import { pages } from '../data/navigation';
 // `bare` drops the announcement, header and footer for one-off pages such as the newsletter
 // results. `footer={false}` keeps the announcement and header but drops the footer, whose contact
 // band would repeat the contact page. `contactBand={false}` keeps the footer's directory but drops its contact
@@ -64,7 +65,7 @@ const markdown = !bare && !noindex && mdFiles.has(mdPath) ? mdPath : undefined;
   <meta name="twitter:image" content={shareImage} />
   <meta name="twitter:image:alt" content={image.alt} />
   {markdown && <link rel="alternate" type="text/markdown" href={markdown} />}
-  {feed && <link rel="alternate" type="application/rss+xml" title="Augur Blog" href="/rss.xml" />}
+  {feed && <link rel="alternate" type="application/rss+xml" title="Augur Blog" href={pages.rss} />}
   <link rel="icon" href="/brand/kit/rep-token/rep-token-icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/brand/kit/rep-token/rep-token-icon.png" />
   <link rel="preload" href={headlineFont} as="font" type="font/woff2" crossorigin />

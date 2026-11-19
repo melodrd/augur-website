@@ -1,5 +1,6 @@
 ---
 import PageLayout from '../../layouts/PageLayout.astro';
+import PageHero from '../../components/pages/PageHero.astro';
 import BlogMotion from '../../components/blog/BlogMotion.astro';
 import PostCard from '../../components/blog/PostCard.astro';
 import BlogContact from '../../components/blog/BlogContact.astro';
@@ -10,30 +11,24 @@ import { getPosts, topics, type Topic } from '../../data/blog';
 // both in the address, and the browser's back button steps back through pages. Not linked from the header or homepage beyond the existing Blog links
 // (docs/reference/ported-content.md).
 const posts = await getPosts();
+const description = 'News, research, and progress reports from the Augur reboot.';
 const [latest] = posts;
 const filters: { value: Topic | 'all'; label: string }[] = [
  { value: 'all', label: 'All' },
  ...(Object.keys(topics) as Topic[]).map(value => ({ value, label: topics[value].heading })),
 ];
 ---
-<PageLayout title="The Augur Arc | Augur blog" description="News, updates, and progress from the Augur reboot" feed contactBand={false}>
+<PageLayout title="The Augur Arc | Augur blog" description={description} feed contactBand={false}>
  <BlogMotion />
- <header class="site-container blog-head">
-  <div>
-   <p class="eyebrow" data-enter>Blog</p>
-   <h1 data-enter style="--enter-step:1">The Augur Arc</h1>
-   <p class="intro" data-enter style="--enter-step:2">News, updates, and progress from the Augur reboot. Follow our journey as we rebuild decentralized prediction markets.</p>
-  </div>
-  <a class="line-link rss" href="/rss.xml" data-enter style="--enter-step:2"><span class="button-label">RSS feed</span></a>
- </header>
+ <PageHero title="The Augur Arc" lead={description} />
 
- <div class="site-container blog-tools" data-blog-tools data-enter style="--enter-step:3" hidden>
+ <div class="site-container blog-tools" data-blog-tools data-enter hidden>
   <div class="topics" role="group" aria-label="Filter posts by topic">
-   {filters.map(filter => <button type="button" data-topic-filter={filter.value} aria-pressed={filter.value === 'all' ? 'true' : 'false'}>{filter.label}</button>)}
+   {filters.map(filter => <button type="button" data-topic-filter={filter.value} aria-pressed={filter.value === 'all' ? 'true' : 'false'}><span class="topic-label">{filter.label}</span></button>)}
   </div>
  </div>
 
- <section class="site-container featured-post" aria-labelledby="latest-heading" data-blog-featured data-enter style="--enter-step:4">
+ <section class="site-container featured-post" aria-labelledby="latest-heading" data-blog-featured data-enter style="--enter-step:1">
   <h2 id="latest-heading" class="sr-only">Latest post</h2>
   <PostCard post={latest} featured />
  </section>
@@ -145,27 +140,78 @@ const filters: { value: Topic | 'all'; label: string }[] = [
  }
 </script>
 <style>
- /* The RSS link sits on the intro's last line. */
- .blog-head{display:flex;justify-content:space-between;align-items:last baseline;gap:24px 48px;padding-block:64px 40px}
- .eyebrow{display:flex;align-items:center;gap:10px;font:600 14px/20px var(--font-heading);color:var(--primary)}
- .eyebrow::before{content:'';width:6px;height:6px;background:var(--primary)}
- h1{margin-top:8px;font-size:clamp(36px,3.4vw,48px);line-height:1.15;letter-spacing:-.02em}
- .intro{max-width:600px;margin-top:12px;font-size:17px;line-height:26px;color:var(--muted-foreground)}
- .rss{display:inline-flex;align-items:center;min-height:44px;flex:none;font:600 15px/22px var(--font-heading);color:var(--foreground)}
-
- /* The topic filters sit on one row over a rule. */
- .blog-tools{display:flex;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--web-outline)}
+ .blog-tools{display:flex;align-items:center}
  .blog-tools[hidden]{display:none}
- .topics{display:flex;flex-wrap:wrap;gap:4px}
- .topics button{min-height:40px;padding:8px 14px;border:1px solid transparent;background:none;color:var(--muted-foreground);font:400 15px/22px var(--font-heading);cursor:pointer;transition:color 140ms ease-out,border-color 140ms ease-out,background-color 140ms ease-out}
- .topics button:hover{color:var(--foreground);border-color:var(--web-outline)}
- .topics button[aria-pressed=true]{color:var(--primary-foreground);background:var(--primary);border-color:var(--primary);font-weight:600}
- .topics button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+ .topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+ }
+ .topics button {
+  --step: 6px;
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 10px 36px 14px 16px;
+  border: 0;
+  background: none;
+  color: var(--muted-foreground);
+  font: 400 15px/22px var(--font-heading);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 140ms ease-out;
+ }
+ /* The homepage's three-step corner lives on the background so the focus ring stays visible. */
+ .topics button::before {
+  content: '';
+  position: absolute;
+  inset: 3px 0;
+  z-index: -1;
+  background: var(--web-quiet);
+  clip-path: polygon(
+   0 0,
+   calc(100% - var(--step) * 3) 0,
+   calc(100% - var(--step) * 3) var(--step),
+   calc(100% - var(--step) * 2) var(--step),
+   calc(100% - var(--step) * 2) calc(var(--step) * 2),
+   calc(100% - var(--step)) calc(var(--step) * 2),
+   calc(100% - var(--step)) calc(var(--step) * 3),
+   100% calc(var(--step) * 3),
+   100% 100%,
+   0 100%
+  );
+  transition: background-color 140ms ease-out;
+ }
+ .topics button:hover::before,
+ .topics button[aria-pressed=true]::before {
+  background: var(--web-tile);
+ }
+ .topic-label { position: relative; }
+ .topic-label::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -6px;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms var(--ease-reveal);
+ }
+ .topics button:hover,
+ .topics button[aria-pressed=true] {
+  color: var(--foreground);
+ }
+ .topics button[aria-pressed=true] .topic-label::after { transform: none; }
+ .topics button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
- .featured-post{padding-top:40px}
+ .featured-post,.all-posts[data-filtering]{padding-top:32px}
+ .blog-tools[hidden]+.featured-post{padding-top:0}
  .featured-post[hidden]{display:none}
  .all-posts{padding-block:56px 120px}
- .all-posts[data-filtering]{padding-top:40px}
  /* Topic changes: a short glide for cards that move, a fade for the rest. */
  :global(html[data-blog-transition]::view-transition-group(*)){animation-duration:320ms;animation-timing-function:cubic-bezier(.22,.61,.36,1)}
  :global(html[data-blog-transition]::view-transition-old(root)),:global(html[data-blog-transition]::view-transition-new(root)){animation:none}
@@ -184,19 +230,14 @@ const filters: { value: Topic | 'all'; label: string }[] = [
  .pager :global(.is-disabled){opacity:.4}
 
  @media(max-width:1023px){
-  .blog-head{padding-block:48px 32px}
   .post-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
  }
  @media(max-width:767px){
-  .blog-head{flex-direction:column;align-items:start;padding-block:40px 24px;gap:12px}
-  .intro{font-size:16px;line-height:24px}
-  /* The topics wrap onto a second line rather than scrolling sideways, where the last one sat off-screen with
-     nothing to show it was there. */
-  .topics button{padding-inline:10px;font-size:14px}
-  .featured-post{padding-top:28px}
+  .topics button{--step:5px;padding-inline:14px 28px;font-size:14px}
+  .featured-post,.all-posts[data-filtering]{padding-top:24px}
   .all-posts{padding-block:48px 80px}
   .post-grid{grid-template-columns:1fr;gap:20px}
  }
- @media(prefers-reduced-motion:reduce){.topics button,.pager :global(a){transition:none}}
- @media(forced-colors:active){.topics button[aria-pressed=true]{border-color:Highlight;color:Highlight}}
+ @media(prefers-reduced-motion:reduce){.topics button,.topics button::before,.topic-label::after,.pager :global(a){transition:none}}
+ @media(forced-colors:active){.topics button::before{background:Canvas}.topics button[aria-pressed=true] .topic-label::after{forced-color-adjust:none;background:Highlight}}
 </style>

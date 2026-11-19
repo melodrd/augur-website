@@ -70,9 +70,8 @@
    challenge, a 2 px line fills under its note. Values are 40/48, so the card is 285 tall like the others.
    Every changing value keeps its states in one cell, the resting one last. */
 .home-page [data-card-kind="query"]{container:query/inline-size}
-.home-page .card-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);margin-top:32px}
-.home-page .split-cell{display:grid;align-content:start;gap:8px;min-width:0;padding-right:24px}
-.home-page .split-cell.is-oracle{padding:0 0 0 24px;border-left:1px solid var(--web-outline)}
+.home-page .card-split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);column-gap:32px;margin-top:32px}
+.home-page .split-cell{display:grid;align-content:start;gap:8px;min-width:0}
 .home-page .split-top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:28px;margin:0 0 4px}
 .home-page .split-name{font:600 13px/16px var(--font-heading);color:var(--muted-foreground)}
 .home-page .split-by{display:inline-flex;align-items:center;gap:8px;font:600 13px/16px var(--font-heading);color:var(--foreground);white-space:nowrap}
@@ -121,8 +120,6 @@
 }
 @container query (width < 340px){
 .home-page .card-split{grid-template-columns:minmax(0,1fr);row-gap:20px}
-.home-page .split-cell{padding:0}
-.home-page .split-cell.is-oracle{padding:20px 0 0;border-left:0;border-top:1px solid var(--web-outline)}
 }
 /* Insurance: a relay (owner, 28 Oct 2026, "Relay it is", concept 3 of the Insurance sketch board). One 2 px
    line through three stops, over three steps in equal columns: the flight, Augur Lituus and the cover. Each
@@ -239,11 +236,10 @@
 .home-page .builders-cue::before{content:'';width:8px;height:8px;background:var(--primary)}
 .home-page .builders-line{max-width:34em;margin:8px 0 0;font-size:16px;line-height:24px;color:var(--muted-foreground);text-wrap:pretty}
 
-/* The builder block, on the Why Augur closer's pattern: the title on Navy, then one Dark 2 panel of three
-   cells split by hairlines. Each claim carries the 8 px Green square, as the closer's reader labels do; the
+/* The builder block uses three Dark 2 cards below its title. Each claim carries the 8 px Green square, as the closer's reader labels do; the
    points are Sora 18/28 from 1280, 16/24 below. The ask closes the panel (owner, 26 Oct 2026: "this could be
    in a better place"). Beside the title it asked before the reasons made the case and drew the eye from the
-   title; now it is the panel's foot under a hairline, its question on the cells' text edge and "Talk to us"
+   title; now it follows the cards, its question on their text edge and "Talk to us"
    in the bottom-right corner, where reading the block ends. The DOM already put it last, so reading and
    focus order are unchanged. "Talk to us" is a text action there (Applications.astro), as "Learn about
    REP" is at the end of Holding REP's head: the 48 px outline box outweighed the two lines beside it (owner,
@@ -251,16 +247,14 @@
    8 under the question. No other hover: nothing here is a control but the link. */
 .home-page .builder-case{grid-template-areas:"title title" "reasons reasons" "ask ask";row-gap:0}
 .home-page .builder-case .builder-title{margin-bottom:24px;font-size:24px;line-height:32px}
-.home-page .builder-case .builder-ask{justify-content:space-between;row-gap:8px;margin:0;padding:24px 32px;border-top:1px solid var(--web-outline);background:var(--web-tile)}
+.home-page .builder-case .builder-ask{justify-content:space-between;row-gap:8px;margin:16px 0 0;padding:24px 32px;background:var(--web-tile)}
 .home-page .builder-case .builder-ask p{font-size:16px;line-height:24px}
-.home-page .builder-case .builder-reasons{gap:0;background:var(--web-tile)}
-.home-page .builder-case .builder-reasons li{padding:32px;font-size:16px;line-height:24px}
-.home-page .builder-case .builder-reasons li+li{border-left:1px solid var(--web-outline)}
+.home-page .builder-case .builder-reasons{gap:16px}
+.home-page .builder-case .builder-reasons li{padding:32px;background:var(--web-tile);font-size:16px;line-height:24px}
 .home-page .builder-case .builder-reasons strong{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-size:20px;line-height:26px}
 .home-page .builder-case .builder-reasons strong::before{content:'';flex:none;width:8px;height:8px;background:var(--primary)}
 @media(min-width:1280px){.home-page .builder-case .builder-title{font-size:28px;line-height:34px}.home-page .builder-case .builder-reasons li{font-size:18px;line-height:28px}}
 @media(max-width:1200px){.home-page .builder-case :is(.builder-reasons li,.builder-ask){padding:24px}}
-@media(max-width:1023px){.home-page .builder-case .builder-reasons li+li{border-left:0;border-top:1px solid var(--web-outline)}}
 @media(forced-colors:active){
 .home-page .case-tabs .case-tab::before{display:none}
 .home-page .case-tabs .case-tab{outline:1px solid CanvasText;outline-offset:-1px}
@@ -311,16 +305,15 @@
 .home-page .tenet-closer{display:block;margin-top:40px;background:none}
 .home-page .tenet-closer::after{display:none}
 .home-page .closer-head{margin:0 0 24px;font-size:28px;line-height:34px;letter-spacing:-.005em;color:var(--foreground);text-wrap:balance}
-.home-page .closer-readers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0;padding:0;list-style:none;background:var(--web-tile)}
-.home-page .closer-reader{padding:32px}
-.home-page .closer-reader+.closer-reader{border-left:1px solid var(--web-outline)}
+.home-page .closer-readers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0;padding:0;list-style:none}
+.home-page .closer-reader{padding:32px;background:var(--web-tile)}
 .home-page .closer-who{gap:10px;margin:0 0 16px;font-size:20px;line-height:26px;letter-spacing:0}
 .home-page .closer-who::before{width:8px;height:8px}
 .home-page .closer-line .setup{font-size:18px;line-height:28px;font-weight:400}
 .home-page .closer-line .payoff{margin-top:6px;font-size:22px;line-height:30px;font-weight:600}
 @media(max-width:1279px){.home-page .closer-head{font-size:24px;line-height:32px}.home-page .closer-who{gap:8px;margin-bottom:12px;font-size:16px;line-height:24px}.home-page .closer-who::before{width:6px;height:6px}.home-page .closer-line .setup{font-size:16px;line-height:24px}.home-page .closer-line .payoff{margin-top:4px;font-size:18px;line-height:27px}}
 @media(max-width:1199px){.home-page .closer-reader{padding:24px}}
-@media(max-width:1023px){.home-page .tenet-closer{margin-top:28px}.home-page .closer-head{margin-bottom:20px}.home-page .closer-readers{grid-template-columns:minmax(0,1fr)}.home-page .closer-reader{padding:24px 28px}.home-page .closer-reader+.closer-reader{border-left:0;border-top:1px solid var(--web-outline)}.home-page .closer-who{font-size:18px}.home-page .closer-line .payoff{font-size:20px;line-height:28px}}
+@media(max-width:1023px){.home-page .tenet-closer{margin-top:28px}.home-page .closer-head{margin-bottom:20px}.home-page .closer-readers{grid-template-columns:minmax(0,1fr)}.home-page .closer-reader{padding:24px 28px}.home-page .closer-who{font-size:18px}.home-page .closer-line .payoff{font-size:20px;line-height:28px}}
 @media(max-width:600px){.home-page .tenet-closer{margin-top:24px}.home-page .closer-reader{padding:20px 24px}.home-page .closer-who{font-size:16px}.home-page .closer-line .payoff{font-size:18px;line-height:27px}}
 @media(forced-colors:active){.home-page .closer-readers{border:1px solid CanvasText}}
 
@@ -348,8 +341,7 @@
 
 /* Learn more (item 6; owner, 26 Oct 2026: sketch A, polished): three doors, the FAQ, the blog and
    Discord, and nothing else. Each door is a Navy well on the Dark 2 band, the three tiles' 400 / 24 grid
-   at 1440, so they read as openings in the band rather than the hairline-split panel the Applications
-   closer already uses. One link fills each tile (its ::after), so the whole door is the target. Top
+   at 1440, keeping each destination in a distinct tile. One link fills each tile (its ::after), so the whole door is the target. Top
    row: the door's object from the iso kit (door-scenes.ts; no generic icons, owner), 104 × 64 on its
    foot, and the way out, → or ↗ for Discord; then the title (H3 24/32) and one Pewter line, all three
    lines wrapping alike. Hover lifts the tile one tonal step to Dark 1 with a Mist edge, draws a 2 px
@@ -526,24 +518,24 @@
    the stage, holding one question's story in four plain sentences, one per step, each under that step's name in a
    left column, so the card reads with the steps above it. Each name is Sora 600 18 in Paper (owner, 29 Oct 2026:
    the names wanted more emphasis), the step a reader scans for; the sentences are Pewter, what's new in each is
-   Sora 600 in Paper (the site's figures) and your win is the one Green. Hairlines part the rows, and the card ends
+   Sora 600 in Paper (the site's figures) and your win is the one Green. Spacing separates the rows, and the card ends
    on the last sentence (the whitepaper note under it went the same day). */
 .home-page .example{margin-top:24px;padding:32px;background:var(--background)}
 .home-page .example-story{display:grid;margin:0;padding:0;list-style:none}
-.home-page .example-step{display:grid;grid-template-columns:160px minmax(0,1fr);column-gap:32px;align-items:baseline;padding:20px 0;border-top:1px solid var(--web-outline)}
-.home-page .example-step:first-child{padding-top:0;border-top:0}
+.home-page .example-step{display:grid;grid-template-columns:160px minmax(0,1fr);column-gap:32px;align-items:baseline;padding:20px 0}
+.home-page .example-step:first-child{padding-top:0}
 .home-page .example-step:last-child{padding-bottom:0}
 .home-page .example-name{font:600 18px/28px var(--font-heading);letter-spacing:-.01em;color:var(--foreground)}
 .home-page .example-line{max-width:44em;margin:0;font-size:18px;line-height:28px;color:var(--muted-foreground);text-wrap:pretty}
 .home-page .example-line strong{font-family:var(--font-heading);font-size:.94em;font-weight:600;font-variant-numeric:tabular-nums;color:var(--foreground)}
 .home-page .example-line .is-win{color:var(--primary)}
-/* Holding REP? Under a hairline the question heads its two points, with "Learn about REP" (the section's one link,
+/* Holding REP? The question heads its two points, with "Learn about REP" (the section's one link,
    underlined at rest) at the end of its row; the points sit on the heading row's grid, the first under the question,
    the second on the lead's edge. The question alone in the 500 column left a 400 px hole beside two points squeezed
    to 306 px, and a dead block under it once they stacked below 1280 (owner, 26 Oct 2026: "fix this"). Each point is
    a mark, its lead in Paper on a line of its own and a Pewter line under it: a Pewter square for what you may do,
    the hollow Green square of a move for the fork. */
-.home-page .holding{margin-top:64px;padding-top:24px;border-top:1px solid var(--web-outline)}
+.home-page .holding{margin-top:64px}
 .home-page .holding-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;column-gap:24px;margin-bottom:16px}
 .home-page .holding-head .button.text{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
 .home-page .holding-title{margin:0;font:600 24px/32px var(--font-heading);letter-spacing:-.01em}
@@ -557,16 +549,15 @@
    ("too similar", same day). So it takes the section's own opening form, a heading row, then a foot. The heading is
    the question and its answer, setup and payoff as on the stage: "Holding REP?" in Pewter, then the earning point's
    term in Green (both Sora 600 28/36), on the card's left edge; the point's sentence (18/28 Pewter) stands beside
-   them on the stage's words (580 + 48), as a lead stands beside its heading. The foot, under a hairline the card's
-   width: the other points, quieter as the fork should be, each term (Sora 600 Paper) run into its sentence (16/24
+   them on the stage's words (580 + 48), as a lead stands beside its heading. The foot uses a quiet background: the other points, quieter as the fork should be, each term (Sora 600 Paper) run into its sentence (16/24
    Pewter); then the outline button at the right, where reading ends. Versions without labels keep the squares. */
-.home-page .holding.has-labels{padding:0;border-top:0;background:var(--background)}
+.home-page .holding.has-labels{background:var(--background)}
 .home-page .holding-top{display:grid;grid-template-columns:minmax(0,500fr) 80px minmax(0,668fr);align-items:center;padding:32px 0}
 .home-page .holding-top :is(.holding-title,.holding-earn){grid-column:1/3;margin:0;padding-left:48px;font:600 28px/36px var(--font-heading);letter-spacing:-.01em}
 .home-page .holding-top .holding-title{color:var(--muted-foreground)}
 .home-page .holding-earn{color:var(--primary)}
 .home-page .holding-line{grid-column:3;grid-row:1/3;margin:0;padding:0 48px;font-size:18px;line-height:28px;color:var(--muted-foreground);text-wrap:pretty}
-.home-page .holding-foot{display:flex;align-items:center;justify-content:space-between;gap:16px 32px;padding:20px 48px;border-top:1px solid var(--web-outline)}
+.home-page .holding-foot{display:flex;align-items:center;justify-content:space-between;gap:16px 32px;padding:20px 48px;background:var(--web-quiet)}
 .home-page .holding-notes{display:grid;row-gap:8px;margin:0;padding:0;list-style:none;font-size:16px;line-height:24px;color:var(--muted-foreground);text-wrap:pretty}
 .home-page .holding-notes .holding-label{margin-right:4px;font-family:var(--font-heading);font-weight:600;color:var(--foreground)}
 .home-page .holding-foot .button{flex:none}

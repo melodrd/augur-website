@@ -23,7 +23,7 @@ const { title, description, publishDate, topic, featuredImage } = post.data;
     text padded below. Cards in a row share a height, and the date line sits at the bottom so it lines up across
     the row whatever the title's length. */
  .post-card{position:relative;display:flex;flex-direction:column;min-width:0;height:100%;border:1px solid var(--border-quiet);background:color-mix(in srgb,var(--web-quiet) 50%,transparent);transition:border-color 180ms ease-out}
- .cover{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border-bottom:1px solid var(--border-quiet);background:var(--web-quiet)}
+ .cover{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;background:var(--web-quiet)}
  .body{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px 22px 22px}
  .meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;margin-top:auto;font-size:14px;line-height:20px;color:var(--muted-foreground)}
  /* A label takes its own line above the date, so the date line never wraps. */
@@ -41,10 +41,10 @@ const { title, description, publishDate, topic, featuredImage } = post.data;
  .post-card:has(a:focus-visible){outline:2px solid var(--ring);outline-offset:4px}
 
  /* Featured: a contained horizontal card, image left. */
- .featured{display:grid;grid-template-columns:minmax(0,9fr) minmax(0,11fr)}
+ .featured{display:grid;grid-template-columns:minmax(0,9fr) minmax(0,11fr);border-color:transparent;background:var(--web-quiet)}
  /* When the text runs taller than the cover, the cover fills the height and crops from the right: the covers
     set their headline on the left. */
- .featured .cover{border-bottom:0;border-right:1px solid var(--border-quiet);height:100%;object-position:left center}
+ .featured .cover{height:100%;object-position:left center}
  .featured .body{justify-content:center;gap:16px;padding:40px 48px}
  .featured .meta{margin-top:4px}
  .featured h3{font-size:clamp(24px,2.2vw,30px);line-height:1.25;letter-spacing:-.01em}
@@ -58,7 +58,7 @@ const { title, description, publishDate, topic, featuredImage } = post.data;
   .body{padding:16px 18px 20px}
   h3{font-size:19px;line-height:27px}
   .featured{grid-template-columns:1fr}
-  .featured .cover{border-right:0;border-bottom:1px solid var(--border-quiet);height:auto}
+  .featured .cover{height:auto}
   .featured .body{padding:20px 20px 24px}
   .featured .description{font-size:16px;line-height:24px}
  }

@@ -1,29 +1,59 @@
 ---
-interface Props { title: string; lead: string; }
+interface Props {
+  title: string;
+  lead: string;
+}
 const { title, lead } = Astro.props;
-// An optional picture beside the words (About's stack, 30 Oct 2026). From 1024 it takes the empty space right of
-// the text, which gives up width only when it must; below that it sits under the text.
-const art = Astro.slots.has('art');
+const hasArt = Astro.slots.has('art');
 ---
-<section class:list={['page-hero', { 'has-art': art }]}>
-  <div class="site-container page-hero-content">
+<header class="page-hero">
+  <div class:list={['site-container', { 'has-art': hasArt }]}>
     <div class="page-hero-text">
-      <h1>{title}</h1>
-      <p class="lead">{lead}</p>
+      <hgroup>
+        <h1>{title}</h1>
+        <p class="page-hero-lead">{lead}</p>
+      </hgroup>
       <slot />
     </div>
-    {art && <div class="page-hero-art"><slot name="art" /></div>}
+    {hasArt && <div class="page-hero-art"><slot name="art" /></div>}
   </div>
-</section>
+</header>
 <style>
-  .page-hero { position:relative; overflow:hidden; padding-block:120px 112px; }
-  .page-hero-content { position:relative; }
-  h1 { margin:0; font-size:clamp(2.5rem,4.445vw,4rem); line-height:1.125; letter-spacing:-.02em; }
-  .lead { max-width:780px; margin:24px 0 0; }
-  .page-hero-art { margin-top:40px; }
-  @media(min-width:1024px) {
-    .has-art .page-hero-content { display:grid; grid-template-columns:minmax(0,780px) auto; justify-content:space-between; align-items:center; column-gap:48px; }
-    .page-hero-art { margin-top:0; }
+  .page-hero {
+    padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(2.5rem, 5vw, 4rem);
   }
-  @media(max-width:767px) { .page-hero { padding-block:64px; } }
+  .page-hero-text {
+    display: grid;
+    justify-items: start;
+    align-content: start;
+    row-gap: 1.25rem;
+    min-inline-size: 0;
+  }
+  h1 {
+    font-size: clamp(2rem, 1.5rem + 3vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -.03em;
+    overflow-wrap: anywhere;
+  }
+  .page-hero-lead {
+    margin-block-start: clamp(.75rem, 1.25vw, 1rem);
+    max-inline-size: 58ch;
+    font-size: clamp(1.0625rem, 1rem + .3vw, 1.25rem);
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  .has-art {
+    display: grid;
+    gap: 2.5rem 3rem;
+  }
+  @media (min-width: 1024px) {
+    .has-art {
+      grid-template-columns: minmax(0, 780px) auto;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+  @media print {
+    .page-hero { padding-block: 0 1.5rem; break-inside: avoid; }
+  }
 </style>

@@ -103,11 +103,6 @@ const html = await renderFaqMarkdown(entry.answer);
  /* A worked example or a caution: a quiet panel with the Green edge. */
  .faq-prose :global(:where(blockquote)){padding:14px 18px;border-left:2px solid var(--primary);background:var(--web-quiet)}
  .faq-prose :global(:where(blockquote>*+*)){margin-top:10px}
- .faq-prose :global(:where(.table-scroll)){overflow-x:auto;max-width:100%}
- .faq-prose :global(:where(.table-scroll:focus-visible)){outline:2px solid var(--ring);outline-offset:2px}
- .faq-prose :global(:where(table)){width:100%;border-collapse:collapse;font-size:15px;line-height:22px}
- .faq-prose :global(:where(th,td)){padding:10px 16px 10px 0;border-bottom:1px solid var(--web-outline);text-align:left;vertical-align:top}
- .faq-prose :global(:where(th)){font:600 14px/20px var(--font-heading);color:var(--muted-foreground);border-bottom-color:var(--muted-foreground)}
  /* Only a question the reader opens animates its answer; the open one on load does not. */
  @media(prefers-reduced-motion:no-preference){.faq-item[data-faq-opening][open] .faq-answer>*{animation:faq-answer-enter var(--faq-answer-time,320ms) cubic-bezier(.22,.61,.36,1) calc(var(--faq-answer-stagger,50ms) * 2) both}.faq-item[data-faq-opening][open] .faq-answer>*+*{animation-delay:calc(var(--faq-answer-stagger,50ms) * 3)}}
  @media(prefers-reduced-motion:reduce){.faq-item,.faq-item::before,.faq-toggle,.faq-toggle::before,.faq-toggle::after{transition:none}}

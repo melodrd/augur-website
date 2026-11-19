@@ -118,7 +118,6 @@ const describedBy = (field: string) => `contact-${field}-error${live ? ' contact
 .socials a :global(.web-icon:last-child){width:14px;height:14px}
 .email-direct{color:var(--muted-foreground);margin-top:16px}
 .email-direct a{transition:color 180ms ease-out}.email-direct a:hover{color:var(--foreground)}
-.contact-message{padding-left:52px;border-left:1px solid var(--web-outline)}
 .contact-message>p{color:var(--muted-foreground);margin-top:12px}
 .contact-message form{margin-top:24px}
 .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 16px}
@@ -136,7 +135,7 @@ const describedBy = (field: string) => `contact-${field}-error${live ? ' contact
 .error-summary{margin-bottom:16px;font-size:14px;line-height:20px}
 /* Off-screen rather than display:none, so form-filling bots still see the trap field. */
 .contact-trap{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
-@media(max-width:1100px){.contact-layout{gap:40px}.contact-message{padding-left:32px}}
-@media(max-width:900px){.contact-layout{grid-template-columns:1fr;gap:48px;padding-block:48px 64px}.contact-message{border-left:0;padding:40px 0 0;border-top:1px solid var(--web-outline)}.contact-intro h1{line-height:1.15}.contact-lead{max-width:600px}}
+@media(max-width:1100px){.contact-layout{gap:40px}}
+@media(max-width:900px){.contact-layout{grid-template-columns:1fr;gap:48px;padding-block:48px 64px}.contact-intro h1{line-height:1.15}.contact-lead{max-width:600px}}
 @media(max-width:480px){.form-grid{grid-template-columns:1fr}.socials ul{gap:16px}.community-invitation{padding:20px}.community-invitation h2{align-items:start}}
 </style>

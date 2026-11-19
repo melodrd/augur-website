@@ -137,9 +137,7 @@ const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), ur
  .post-bar{display:none}
  .post-cover{margin-block:40px 56px}
  .post-cover :global(img){display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover;border:1px solid var(--web-outline);background:var(--web-quiet)}
- .post-end{margin-top:64px;padding-top:32px;border-top:1px solid var(--web-outline)}
- /* A post that ends with a sign-off already closes on its rule, so the share block doesn't add a second one. */
- .post-layout:has(.signoff:last-child) .post-end{margin-top:48px;padding-top:0;border-top:0}
+ .post-end{margin-top:48px}
 
  /* Reading text, over Prose's defaults: a calmer body colour than the headings, 1.7 line height, and paragraph
     gaps close to a full line. Section headings carry a small green square in the margin. Anchors land below the
@@ -156,10 +154,10 @@ const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), ur
  .post-text :global(.prose-article.post-prose>:where(:first-child)){margin-top:0}
 
  /* Standfirst: an italic-only opening paragraph (rehype-post-text) set as a larger lead, upright. Sign-off: one
-    after the sections, set small and muted under a rule. */
+    after the sections, set small and muted. */
  .post-text :global(.prose-article.post-prose .standfirst){font-size:21px;line-height:33px;color:var(--foreground);text-wrap:pretty}
  .post-text :global(.prose-article.post-prose .standfirst em){font-style:normal}
- .post-text :global(.prose-article.post-prose .signoff){padding-top:24px;border-top:1px solid var(--web-outline);font-size:16px;line-height:26px;color:var(--muted-foreground)}
+ .post-text :global(.prose-article.post-prose .signoff){margin-top:48px;font-size:16px;line-height:26px;color:var(--muted-foreground)}
 
  /* Callouts (paragraphs that opened with 👉): a pointer in a quiet panel with a green edge. */
  .post-text :global(.prose-article.post-prose .callout){position:relative;padding:16px 20px 16px 52px;border:1px solid var(--web-outline);border-left:2px solid var(--primary);background:var(--web-quiet);color:var(--foreground);font-size:17px;line-height:28px}
@@ -177,7 +175,7 @@ const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), ur
     their own size, portrait diagrams fit about a screen, and the size is known before the image loads. */
  .post-text :global(.prose-article.post-prose img){width:100%;max-width:min(100%,var(--image-max,100%));height:auto;margin-inline:auto}
 
- .keep-reading{border-top:1px solid var(--web-outline);padding-block:72px 112px}
+ .keep-reading{padding-bottom:var(--section-space)}
  .keep-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:32px}
  .keep-head h2{position:relative;font-size:28px;line-height:36px;letter-spacing:-.01em}
  .marked::before{content:'';position:absolute;left:-22px;top:14px;width:8px;height:8px;background:var(--primary)}
@@ -217,7 +215,6 @@ const shareData = JSON.stringify({ markdown: postMarkdown(post, Astro.site!), ur
   .post-text :global(.prose-article.post-prose .callout::before){font-size:16px;line-height:26px}
   .post-text :global(.prose-article.post-prose .prose-card){font-size:16px;line-height:26px}
   .post-text :global(.prose-article.post-prose .callout::before){left:16px;top:14px}
-  .keep-reading{padding-block:56px 80px}
   .keep-head h2{font-size:24px;line-height:32px}
   .marked::before{left:-16px;top:13px;width:6px;height:6px}
   .queue{grid-template-columns:1fr;gap:20px}

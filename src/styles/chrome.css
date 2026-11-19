@@ -37,11 +37,10 @@
 
 /* Hide on the way down, back on the way up (owner, 22 Oct 2026; header.js sets the attributes, so
    without JavaScript the header stays in the flow). Sticky at the top; slid up by its own height, a
-   transform, when hidden. Once it has left its place under the announcement, a 1 px Outline line marks
-   its foot so the page doesn't run into it unseen (no shadows). Reduced motion swaps the slide for a cut. */
+   transform, when hidden. A quiet surface distinguishes the header once it sticks. Reduced motion swaps the slide for a cut. */
 .site-header[data-headroom]{position:sticky;top:0;transition:transform 280ms var(--ease-reveal)}
 .site-header[data-headroom][data-hidden]{transform:translateY(-100%)}
-.site-header[data-headroom][data-stuck]::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--web-outline);pointer-events:none}
+.site-header[data-headroom][data-stuck]{background:var(--web-quiet)}
 @media(prefers-reduced-motion:reduce){.site-header[data-headroom]{transition:none}}
 @media print{.site-header[data-headroom]{position:relative;transform:none}}
 

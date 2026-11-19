@@ -31,17 +31,12 @@ const { class: className } = Astro.props;
  .prose-article :global(:where(blockquote>*+*)){margin-top:12px}
  .prose-article :global(:where(:not(pre)>code)){font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em;padding:1px 5px;background:var(--web-tile);overflow-wrap:anywhere}
  .prose-article :global(:where(pre)){padding:16px 20px;background:var(--web-quiet);border:1px solid var(--web-outline);overflow-x:auto;font-size:14px;line-height:22px}
- .prose-article :global(:where(hr)){border:0;border-top:1px solid var(--web-outline);margin-block:48px}
+ .prose-article :global(:where(hr)){margin-block:48px}
  .prose-article :global(:where(hr+*)){margin-top:0}
  .prose-article :global(:where(img)){display:block;height:auto;border:1px solid var(--web-outline)}
- .prose-article :global(:where(.table-scroll)){overflow-x:auto;max-width:100%}
- .prose-article :global(:where(.table-scroll:focus-visible)){outline:2px solid var(--ring);outline-offset:2px}
- .prose-article :global(:where(table)){width:100%;border-collapse:collapse;font-size:15px;line-height:22px}
- .prose-article :global(:where(th,td)){padding:12px 16px 12px 0;border-bottom:1px solid var(--web-outline);text-align:left;vertical-align:top}
- .prose-article :global(:where(th)){font:600 14px/20px var(--font-heading);color:var(--muted-foreground);border-bottom-color:var(--muted-foreground)}
  .prose-article :global(:where(sup)){font-size:.7em;line-height:0}
  .prose-article :global(:where(sup a)){text-decoration:none;padding-inline:1px}
- .prose-article :global(:where(.footnotes)){margin-top:56px;padding-top:24px;border-top:1px solid var(--web-outline);font-size:15px;line-height:24px;color:var(--muted-foreground)}
+ .prose-article :global(:where(.footnotes)){margin-top:56px;font-size:15px;line-height:24px;color:var(--muted-foreground)}
  .prose-article :global(:where(.katex)){font-size:1.05em}
  .prose-article :global(:where(.katex-display)){overflow-x:auto;overflow-y:hidden;padding-block:4px}
  /* Blog callouts: paragraphs that opened with an emoji (rehype-callouts). */
